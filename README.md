@@ -2,7 +2,7 @@
 
 Sincronización de partidos de fútbol sala de la FCF con calendarios suscritos (Apple Calendar / iCalendar RFC 5545).
 
-Estado: **Milestones 1 (FCF API → provider → mapper → `Match[]`), 2 (generador ICS), 3 (endpoint HTTP) y 4 (despliegue real en Vercel + suscripción `webcal://` confirmada en iPhone) completas.** Todavía NO hay cache/persistencia más allá del ETag actual (Milestone 5), ni Angular (Milestone 6).
+Estado: **Milestones 1 (FCF API → provider → mapper → `Match[]`), 2 (generador ICS), 3 (endpoint HTTP), 4 (despliegue real en Vercel + suscripción `webcal://` confirmada en iPhone) y 5 (análisis de cache/actualización, decisión documentada: sin cambios de infraestructura por ahora) completas.** Todavía NO hay Angular (Milestone 6).
 
 ## 0. Validado
 
@@ -13,6 +13,7 @@ Estado: **Milestones 1 (FCF API → provider → mapper → `Match[]`), 2 (gener
 - **Despliegue real en Vercel (Milestone 4, completo)**: proyecto conectado a GitHub, dominio propio `partitsalcalendari.com` (comprado directamente en Vercel, así que sin configuración DNS manual — nameservers ya apuntaban a Vercel). Primer intento de deploy falló por invocar `npm run build` automáticamente sin `typescript` instalado (ver "Por qué el script se llama `typecheck` y no `build`" más abajo); corregido renombrando el script.
 - `GET https://partitsalcalendari.com/api/calendar/58162580/54755993.ics` verificado end-to-end contra la FCF real: 26 partidos de CFS LA SÉNIA, septiembre 2026 - mayo 2027, horarios/pabellón/`STATUS:CONFIRMED` correctos.
 - **`webcal://partitsalcalendari.com/api/calendar/58162580/54755993.ics` suscrito con éxito en un iPhone real** vía Safari — iOS reconoció el esquema `webcal://` y ofreció el diálogo nativo "Añadir suscripción de calendario". Esto es lo que Milestone 2 dejaba sin resolver (un `.ics` suelto por Mail no deja claro cómo *suscribirse*, solo importar una vez); con `webcal://` y una URL pública sí queda enlazado como suscripción real. Milestone 4 completa.
+- **Milestone 5 (análisis de cache/actualización)**: decisión tomada de mantener la Estrategia A (generación en vivo + ETag, sin cron ni persistencia) — ver sección 5 para el análisis completo y los motivos.
 
 ## 1. Arquitectura
 
@@ -49,7 +50,7 @@ federation/fcf/*    parseFcfDate usa shared/timezone   calendar/ics-timezone.ts 
 
 - `generateIcs(matches, options)` en `calendar/ics-generator.ts`: función pura, sin red ni conocimiento de la FCF. Genera `VCALENDAR` con `VTIMEZONE` estático de Europe/Madrid embebido, `UID:fcf-{CODACTA}@{uidDomain}` estable, `DTSTART/DTEND;TZID=Europe/Madrid`, `SUMMARY`/`LOCATION` escapados, `GEO` condicional, `STATUS` mapeado desde `MatchStatus`.
 - Sin librería ICS externa (sigue sin haber acceso a `registry.npmjs.org` en este sandbox) — decisión documentada con criterio: el subconjunto de RFC 5545 usado es pequeño y estático, y las dos partes realmente delicadas (**folding a nivel de octeto UTF-8** y **escaping de TEXT**) están aisladas en `ics-text.ts` con tests de casos límite. Cambiar a `ical-generator` es mecánico si algún día hace falta.
-- **SEQUENCE fijo en `0`, DTSTAMP/LAST-MODIFIED siempre "ahora"** — análisis completo y trade-off de una futura Fase 2 con Supabase/Postgres documentados directamente en `ics-generator.ts`. Sigue siendo válido en Milestone 3 (ver sección 4.3 más abajo sobre por qué el ETag no depende de estos valores).
+- **SEQUENCE fijo en `0`, DTSTAMP/LAST-MODIFIED siempre "ahora"** — decisión analizada a fondo y confirmada en Milestone 5 (sección 5): bajo impacto práctico para un calendario suscrito (`METHOD:PUBLISH`), y sin señales reales todavía de que haga falta cron + persistencia para calcularlos de verdad. Ver también sección 4.3 sobre por qué el ETag no depende de estos valores.
 
 ## 4. Milestone 3 — Endpoint HTTP
 
@@ -102,7 +103,21 @@ Comportamiento cubierto:
 
 `parseCalendarRoute(url)` en `calendar-route.ts` recibe el `url` crudo de la petición (con o sin query string) y extrae `{groupId, teamId}` a mano, **sin usar `req.query`** de Vercel. Dos motivos: (a) el propio `[teamId].ts` de Vercel captura el segmento completo (`"54755993.ics"`, con extensión) así que habría que despojar el sufijo igualmente; (b) parsear directamente de la URL hace que el comportamiento sea idéntico venga la petición de Vercel o del servidor de pruebas local, que no tiene inyección de parámetros de ruta de ningún tipo.
 
-## 5. Cómo ejecutar
+## 5. Milestone 5 — Cache / Actualización (decisión documentada, sin cambios de infraestructura)
+
+Antes de tocar código se analizó si la Estrategia A actual (generación en vivo en cada request, en producción desde Milestone 3) es ya un MVP correcto, o si hacía falta introducir cron + persistencia (Estrategia B / "Fase 2" del brief original).
+
+Lo que la Estrategia A ya resuelve: `Cache-Control` (30 min) + ETag de contenido con `304` real — cualquier cliente HTTP-compliant reutiliza la respuesta sin pedir de más, y los cambios de la FCF se propagan de inmediato (no hay retraso de cron). Lo único que no da son `SEQUENCE`/`LAST-MODIFIED` reales (fijos en `0`/"ahora" — ver sección 3), porque calcularlos exige comparar contra un snapshot persistido del build anterior.
+
+Análisis del impacto real de ese hueco: `SEQUENCE` importa sobre todo en flujos de invitación iTIP (`METHOD:REQUEST`/`REPLY`), donde el cliente necesita saber qué versión de una invitación es la vigente. Nuestro caso es un calendario **suscrito** (`METHOD:PUBLISH`, `webcal://`): al refrescar, el cliente se trae el `.ics` completo y sustituye por UID, sin diffear evento a evento contra `SEQUENCE`. Se validó exactamente este comportamiento en Milestone 4 con una suscripción real en iPhone, que funcionó sin que `SEQUENCE` jugara ningún papel.
+
+Lo que sí costaría no tener cron + persistencia si el proyecto creciera: resiliencia ante caídas de la FCF (hoy, una caída de la FCF es un `502` inmediato al suscriptor, ya probado con un fallo real en Milestone 3); latencia (cada request espera a la FCF en vivo); volumen (más suscriptores implica más llamadas a la FCF, con riesgo de rate-limit a futuro).
+
+**Decisión: no se implementa cron ni persistencia en esta iteración.** Se mantiene la Estrategia A. Motivo: cero señales reales todavía de que haga falta (un solo equipo probado, ninguna caída de la FCF observada en producción, sin datos de cuántos suscriptores habrá) y el brief pide explícitamente evitar overengineering y no introducir base de datos sin justificación. Revisar esta decisión si aparece alguna señal real: caídas de la FCF observadas en producción, más de un puñado de suscriptores reales, o necesidad genuina de que `SEQUENCE` incremente correctamente (por ejemplo, si el proyecto migrara de `webcal://` de solo lectura a un flujo CalDAV con invitaciones).
+
+Nota sobre la propuesta original del brief: si en el futuro hiciera falta esa Fase 2, la propuesta correcta **no sería Supabase/Postgres** — lo único que hay que persistir es "el último snapshot de partidos conocido por grupo" para poder diffear, sin ninguna consulta relacional ni relaciones entre tablas. Un almacén clave-valor simple (p. ej. Vercel KV) es suficiente y evita una base de datos relacional que aquí sería sobre-ingeniería.
+
+## 6. Cómo ejecutar
 
 ```bash
 npm install
@@ -129,20 +144,20 @@ Esto **no** sustituye la prueba real de Milestone 4 (una URL pública que un iPh
 
 A partir de esta milestone trabajo directamente sobre tu carpeta (`futsal-calendar-milestone2`) en lugar de mandarte un `.zip` cada vez — ya no hace falta descomprimir nada. Una limitación que he detectado al probarlo: el acceso a tu equipo ejecuta comandos dentro de una máquina Linux aislada del propio entorno de Cowork, que **no** es tu terminal Windows real — puede leer y editar archivos de texto en tu carpeta sin problema, pero no puede ejecutar `npm test`/`npm run typecheck` ahí, porque tu `node_modules` tiene binarios nativos compilados para Windows (`esbuild`) que esa máquina Linux no puede correr. Por eso sigo verificando todo (build + 126 tests + smoke real del servidor) en mi propio sandbox antes de escribir nada en tu carpeta, y te sigo pidiendo que confirmes `npm test`/`npm run typecheck` en tu terminal real como última verificación — exactamente igual que en las Milestones 1 y 2, solo que ahora sin el paso del `.zip`.
 
-### Por qué el script se llama `typecheck` y no `build` (Milestone 4)
+### 6.1 Por qué el script se llama `typecheck` y no `build` (Milestone 4)
 
 Hasta la Milestone 3 este script se llamaba `build`. Al desplegar en Vercel, eso causó un fallo real: Vercel, con "Framework Preset: Other", ejecuta automáticamente `npm run build` si existe ese script en `package.json` — **incluso sin haberlo configurado explícitamente** en el dashboard, es su comportamiento por defecto. Además, la instalación de dependencias en Vercel usa `NODE_ENV=production`, que **omite `devDependencies`** (`typescript`, `tsx`, `@types/node` en nuestro caso), así que `tsc` ni siquiera estaba instalado cuando ese script se ejecutaba. Dos motivos independientes para el mismo fallo.
 
 La solución correcta no es marcar un override vacío de "Build Command" en el dashboard de Vercel — eso funciona, pero es un ajuste invisible en la UI que cualquiera que reimporte el proyecto (o lo despliegue desde cero) puede olvidar. La solución correcta está en el propio repositorio: renombrar el script a `typecheck`, un nombre que Vercel no invoca automáticamente. Las funciones de `api/` las compila el propio runtime Node de Vercel al vuelo a partir del `.ts`; nuestro `tsc --noEmit` nunca fue parte del proceso de build de producción, es solo un chequeo de tipos para desarrollo/CI — no debía ejecutarse ahí en primer lugar.
 
-## 6. Lo que NO se ha hecho todavía (a propósito)
+## 7. Lo que NO se ha hecho todavía (a propósito)
 
-- Cache/cron/persistencia más allá del `Cache-Control` + ETag actuales, incluido el SEQUENCE real de la sección 3 (Milestone 5).
+- Cache/cron/persistencia más allá del `Cache-Control` + ETag actuales — decisión explícita en Milestone 5 (sección 5) de no implementarlo todavía, no un olvido.
 - Angular (Milestone 6).
 - Base de datos: no se ha introducido nada.
 - Decidir si "0 partidos para este equipo" debería ser `404` en vez de `200` con calendario vacío — de momento es `200` a propósito (ver 4.2); es una decisión de producto, no técnica, y prefiero que la tomes tú viendo el comportamiento real.
 
-## 7. Preguntas abiertas
+## 8. Preguntas abiertas
 
 De Milestones 1-2 (sin cambios, seguimos sin haber visto casos reales):
 
@@ -154,10 +169,11 @@ De Milestones 1-2 (sin cambios, seguimos sin haber visto casos reales):
 Nuevas de Milestone 3-4:
 
 5. ~~Dominio real de despliegue~~ — resuelto en Milestone 4: `DEFAULT_UID_DOMAIN` en `ics-config.ts` es ahora `partitsalcalendari.com`, el dominio real de despliegue. A partir de aquí, cambiarlo sería una breaking change (ver comentario en `ics-config.ts`).
-6. **¿`404` o `200` vacío para un equipo sin partidos?** Ver sección 6, último punto.
+6. **¿`404` o `200` vacío para un equipo sin partidos?** Ver sección 7, último punto.
 7. **¿30 minutos de `max-age` es razonable?** Es una elección inicial sin datos reales de cuántos usuarios/peticiones habrá — fácil de ajustar, es una constante en `calendar-http-handler.ts`.
+8. ~~¿Cache/cron/persistencia ahora?~~ — decidido en Milestone 5 (sección 5): no por ahora. Revisar si aparecen señales reales (caídas de la FCF, más suscriptores, necesidad genuina de SEQUENCE correcto).
 
-## 8. Estructura de carpetas (actualizada)
+## 9. Estructura de carpetas (actualizada)
 
 ```
 api/
@@ -198,7 +214,7 @@ tests/
     calendar-route.test.ts, calendar-http-handler.test.ts
 ```
 
-## 9. Cobertura de tests (126 tests)
+## 10. Cobertura de tests (126 tests)
 
 Milestones 1+2 (88, sin cambios de comportamiento) + Milestone 3 (38 nuevos):
 
