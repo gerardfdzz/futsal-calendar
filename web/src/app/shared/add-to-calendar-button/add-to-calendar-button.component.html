@@ -1,0 +1,13 @@
+<div class="add-to-calendar">
+  <a class="add-to-calendar__primary" [href]="webcalUrl()">
+    <span class="material-symbols-outlined" aria-hidden="true">event_available</span>
+    Afegir al calendari
+  </a>
+  <button type="button" class="add-to-calendar__secondary" (click)="copyUrl()">
+    {{ copied() ? 'URL copiada!' : 'Copiar URL' }}
+  </button>
+  <p class="add-to-calendar__hint">
+    El calendari es manté sincronitzat automàticament amb la Federació. No podem garantir amb quina freqüència la
+    teva app de calendari torna a consultar-lo.
+  </p>
+</div>

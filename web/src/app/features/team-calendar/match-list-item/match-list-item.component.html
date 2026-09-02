@@ -1,0 +1,20 @@
+<div class="match-list-item">
+  <div class="match-list-item__when">
+    <span class="match-list-item__round">Jornada {{ match().round }}</span>
+    <span class="match-list-item__date">{{ dayLabel() }} · {{ timeLabel() }}</span>
+  </div>
+
+  <div class="match-list-item__body">
+    <p class="match-list-item__matchup">
+      <span [class.match-list-item__team--us]="isHome()">{{ match().homeTeam.name }}</span>
+      <span class="match-list-item__sep">vs</span>
+      <span [class.match-list-item__team--us]="!isHome()">{{ match().awayTeam.name }}</span>
+    </p>
+    @if (match().venue; as venue) {
+      <p class="match-list-item__venue">
+        <span class="material-symbols-outlined" aria-hidden="true">location_on</span>
+        <span>{{ venue.name }}</span>
+      </p>
+    }
+  </div>
+</div>

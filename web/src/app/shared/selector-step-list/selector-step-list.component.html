@@ -1,0 +1,15 @@
+@if (items().length === 0) {
+  <p class="selector-step-list__empty">{{ emptyLabel() }}</p>
+} @else {
+  <div class="selector-step-list">
+    @for (item of items(); track item.id) {
+      <button type="button" class="selector-step-list__card" (click)="select.emit(item)">
+        <span class="selector-step-list__icon">
+          <span class="material-symbols-outlined" aria-hidden="true">sports_soccer</span>
+        </span>
+        <span class="selector-step-list__name">{{ item.name }}</span>
+        <span class="material-symbols-outlined selector-step-list__chevron" aria-hidden="true">chevron_right</span>
+      </button>
+    }
+  </div>
+}

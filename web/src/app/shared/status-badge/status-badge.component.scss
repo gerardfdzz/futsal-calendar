@@ -1,0 +1,15 @@
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px var(--space-sm);
+  border-radius: var(--radius-full);
+  font-size: 12px;
+  font-weight: 500;
+  background: var(--color-status-unknown-bg);
+  color: var(--color-status-unknown-text);
+
+  &--scheduled {
+    background: var(--color-status-scheduled-bg);
+    color: var(--color-status-scheduled-text);
+  }
+}

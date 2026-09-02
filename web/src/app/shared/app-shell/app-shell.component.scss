@@ -1,0 +1,32 @@
+.app-shell {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+
+  &__header {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    display: flex;
+    align-items: center;
+    height: 56px;
+    padding: 0 var(--space-container-margin);
+    background: var(--color-background);
+    border-bottom: 1px solid var(--color-surface-variant);
+  }
+
+  &__brand {
+    font-family: var(--font-headline);
+    font-weight: 700;
+    font-size: 20px;
+    color: var(--color-primary);
+    letter-spacing: -0.01em;
+  }
+
+  &__main {
+    flex: 1;
+    width: 100%;
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+}

@@ -1,0 +1,76 @@
+/**
+ * Design tokens translated from the "Llum Esportiva" design system
+ * (DESIGN.md, Milestone 6 UX handoff). Kept as plain CSS custom
+ * properties rather than SCSS variables so component styles can
+ * reference them without an `@use` import in every file, and so a
+ * future theming need (unlikely for this MVP) wouldn't require
+ * recompiling anything.
+ *
+ * This app deliberately ships ONE palette — DESIGN.md doesn't specify a
+ * dark variant, and the brief never asked for one.
+ */
+:root {
+  // Colors — Material-3-style token names, straight off DESIGN.md.
+  --color-primary: #506600;
+  --color-on-primary: #ffffff;
+  --color-primary-container: #ccff00;
+  --color-on-primary-container: #5b7300;
+  --color-background: #f8f9fa;
+  --color-on-background: #191c1d;
+  --color-surface: #ffffff;
+  --color-surface-container-lowest: #ffffff;
+  --color-surface-container-low: #f3f4f5;
+  --color-surface-container: #edeeef;
+  --color-surface-container-high: #e7e8e9;
+  --color-surface-variant: #e1e3e4;
+  --color-on-surface: #191c1d;
+  --color-on-surface-variant: #444933;
+  --color-outline: #747a60;
+  --color-outline-variant: #c4c9ac;
+  --color-secondary: #575e70;
+  --color-secondary-container: #d9dff5;
+  --color-error: #ba1a1a;
+  --color-error-container: #ffdad6;
+
+  // DESIGN.md's "Components" section uses a simpler, slightly different
+  // hex set for buttons/cards/inputs than the Material-3 token block
+  // above — both are reproduced here verbatim rather than reconciled,
+  // since that's exactly what the handoff document itself does.
+  --color-button-primary-bg: #ccff00;
+  --color-button-primary-text: #111827;
+  --color-button-primary-bg-pressed: #b8e600; // ~10% darker, per "States"
+  --color-border: #e5e7eb;
+  --color-card-bg: #f3f4f6;
+  --color-input-bg: #f9fafb;
+  --color-text-muted: #6b7280;
+  --color-placeholder: #9ca3af;
+  --color-chevron: #d1d5db;
+
+  // Status badges (Programat is the only variant this app activates —
+  // see StatusBadgeComponent's doc comment for why).
+  --color-status-scheduled-bg: #e7e8e9;
+  --color-status-scheduled-text: #191c1d;
+  --color-status-unknown-bg: #edeeef;
+  --color-status-unknown-text: #444933;
+
+  // Typography
+  --font-headline: 'Hanken Grotesk', system-ui, sans-serif;
+  --font-body: 'Inter', system-ui, sans-serif;
+
+  // Radius
+  --radius-sm: 0.25rem;
+  --radius-default: 0.5rem;
+  --radius-md: 0.75rem;
+  --radius-lg: 1rem;
+  --radius-xl: 1.5rem;
+  --radius-full: 9999px;
+
+  // Spacing — 8px grid, plus the mockups' 20px container margin.
+  --space-base: 4px;
+  --space-xs: 8px;
+  --space-sm: 12px;
+  --space-md: 16px;
+  --space-lg: 24px;
+  --space-xl: 32px;
+  --space-container-margin: 20px;
+}

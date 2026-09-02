@@ -1,0 +1,49 @@
+<div class="team-selector">
+  <header class="team-selector__header">
+    @if (step() !== 'discipline') {
+      <button type="button" class="team-selector__back" (click)="goBack()" aria-label="Enrere">
+        <span class="material-symbols-outlined" aria-hidden="true">arrow_back</span>
+      </button>
+    }
+    <h1 class="team-selector__title">{{ title() }}</h1>
+  </header>
+
+  @if (error()) {
+    <p class="team-selector__error">{{ error() }}</p>
+  }
+
+  @if (loading()) {
+    <p class="team-selector__loading">Carregant…</p>
+  } @else {
+    @switch (step()) {
+      @case ('discipline') {
+        <app-selector-step-list
+          [items]="disciplines()"
+          emptyLabel="No s'han trobat disciplines."
+          (select)="selectDiscipline($event.id)"
+        ></app-selector-step-list>
+      }
+      @case ('competition') {
+        <app-selector-step-list
+          [items]="competitions()"
+          emptyLabel="No hi ha competicions per a aquesta disciplina."
+          (select)="selectCompetition($event.id)"
+        ></app-selector-step-list>
+      }
+      @case ('group') {
+        <app-selector-step-list
+          [items]="groups()"
+          emptyLabel="No hi ha grups per a aquesta competició."
+          (select)="selectGroup($event.id)"
+        ></app-selector-step-list>
+      }
+      @case ('team') {
+        <app-selector-step-list
+          [items]="teams()"
+          emptyLabel="No hi ha equips per a aquest grup."
+          (select)="selectTeam($event)"
+        ></app-selector-step-list>
+      }
+    }
+  }
+</div>

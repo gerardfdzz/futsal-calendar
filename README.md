@@ -1,8 +1,8 @@
-# futsal-calendar — Milestones 1-4
+# futsal-calendar — Milestones 1-6
 
 Sincronización de partidos de fútbol sala de la FCF con calendarios suscritos (Apple Calendar / iCalendar RFC 5545).
 
-Estado: **Milestones 1 (FCF API → provider → mapper → `Match[]`), 2 (generador ICS), 3 (endpoint HTTP), 4 (despliegue real en Vercel + suscripción `webcal://` confirmada en iPhone) y 5 (análisis de cache/actualización, decisión documentada: sin cambios de infraestructura por ahora) completas.** Todavía NO hay Angular (Milestone 6).
+Estado: **Milestones 1 (FCF API → provider → mapper → `Match[]`), 2 (generador ICS), 3 (endpoint HTTP), 4 (despliegue real en Vercel + suscripción `webcal://` confirmada en iPhone), 5 (análisis de cache/actualización, decisión documentada: sin cambios de infraestructura por ahora) y 6 (backend de catálogo FCF + UI Angular 17) completas.** Ver sección 11 para el detalle de Milestone 6, incluyendo una limitación importante de verificación que necesita tu confirmación.
 
 ## 0. Validado
 
@@ -153,8 +153,8 @@ La solución correcta no es marcar un override vacío de "Build Command" en el d
 ## 7. Lo que NO se ha hecho todavía (a propósito)
 
 - Cache/cron/persistencia más allá del `Cache-Control` + ETag actuales — decisión explícita en Milestone 5 (sección 5) de no implementarlo todavía, no un olvido.
-- Angular (Milestone 6).
 - Base de datos: no se ha introducido nada.
+- **Verificación de compilación de la app Angular (`web/`)** — ver sección 11.2, es la limitación más importante abierta ahora mismo.
 - Decidir si "0 partidos para este equipo" debería ser `404` en vez de `200` con calendario vacío — de momento es `200` a propósito (ver 4.2); es una decisión de producto, no técnica, y prefiero que la tomes tú viendo el comportamiento real.
 
 ## 8. Preguntas abiertas
@@ -173,50 +173,134 @@ Nuevas de Milestone 3-4:
 7. **¿30 minutos de `max-age` es razonable?** Es una elección inicial sin datos reales de cuántos usuarios/peticiones habrá — fácil de ajustar, es una constante en `calendar-http-handler.ts`.
 8. ~~¿Cache/cron/persistencia ahora?~~ — decidido en Milestone 5 (sección 5): no por ahora. Revisar si aparecen señales reales (caídas de la FCF, más suscriptores, necesidad genuina de SEQUENCE correcto).
 
+## 11. Milestone 6 — Backend de catálogo FCF + UI Angular 17
+
+### 11.1 Por qué "cerca real" se convirtió en un selector en cascada
+
+El plan original (ver brief del proyecto) asumía una búsqueda libre de clubes. Antes de implementarla se probó en vivo contra `https://www.fcf.cat/api/clubs/search`: para Futbol 11 funciona correctamente, pero para **Futbol Sala está rota** — devuelve el club por nombre pero con `teams: []` (probado con varios valores de `temp`, sin efecto), y el segundo equipo conocido del grupo (AES LA SÉNIA-STOCKPLUS) ni siquiera aparece en los resultados.
+
+Se investigó una alternativa también en vivo: el propio selector en cascada que usa la web de la FCF (`disciplines` → `competicions` → `grups` → `equips`, todos bajo `/api/competition/*`), verificado end-to-end contra el grupo real (`58162580` = "TGN Gr. 14", con CFS LA SÉNIA y AES LA SÉNIA-STOCKPLUS entre ~15 equipos reales). Se confirmó además que el esquema de `/api/competition/partidos` es idéntico para Futbol 11 y Futbol Sala, así que no hace falta fijar la disciplina de forma rígida — el selector la deja elegible, con Futbol Sala (`19308236`) preseleccionada por defecto.
+
+Decisión (confirmada contigo antes de implementar): selector en cascada en vez de búsqueda libre; favoritos/perfil/resultados en vivo quedan fuera de alcance de este MVP (no hay autenticación ni fuente de datos para ninguno de los tres).
+
+### 11.2 Backend — endpoints de catálogo (nuevo)
+
+Cuatro endpoints JSON nuevos, siguiendo el mismo patrón puerto/adaptador que `calendar-http-handler.ts` (Milestone 3): `CompetitionCatalogProvider` (puerto) → `FcfCompetitionCatalogProvider` (adaptador FCF, con su propio `FcfHttpClient` — deliberadamente **no** comparte código con `FcfFederationProvider` para no arriesgar una regresión en el proveedor de partidos ya probado) → handlers framework-agnostic → adaptadores Vercel finos:
+
+```
+GET /api/disciplines
+GET /api/competitions?disciplinaId=X[&temporada=Y]
+GET /api/competitions/{competicioId}/groups
+GET /api/groups/{grupId}/teams
+GET /api/matches/{groupId}/{teamId}          (JSON, no ICS — para la UI)
+```
+
+`listTeams` deduplica: la FCF devuelve cada equipo una vez por jornada en la que aparece. `getTeamMatches` (nuevo, `matches/team-matches.service.ts`) extrae el pipeline `provider.getMatches → filterTeamMatches` que antes vivía solo dentro de `calendar.service.ts`, para que el endpoint JSON y el ICS compartan exactamente la misma lógica de filtrado sin duplicarla.
+
+### 11.3 Frontend — Angular 17 (nuevo, `web/`)
+
+Standalone components, signals, control-flow `@if/@for/@switch`, esbuild `application` builder. Dos páginas:
+
+- `/` — `TeamSelectorPage`: wizard de 4 pasos (disciplina → competició → grup → equip) sobre `SelectorStepListComponent`, con la selección reflejada en query params para que el botón "atrás" del navegador funcione paso a paso.
+- `/equip/:groupId/:teamId` — `TeamCalendarPage`: próximo partido destacado (`NextMatchHeroComponent`), lista de siguientes partidos (`MatchListItemComponent`), y el botón de suscripción (`AddToCalendarButtonComponent`, con enlace `webcal://` + copiar URL — mismo mensaje honesto sobre frecuencia de sincronización que en Milestone 4/5).
+
+Estilos: tokens de `DESIGN.md` ("Llum Esportiva") traducidos a variables CSS en `web/src/styles/_tokens.scss`, sin Tailwind (el stack del brief pide SCSS explícitamente).
+
+### 11.4 Limitación importante: no se ha podido verificar que la app compile
+
+`registry.npmjs.org` devuelve `403 Forbidden` para **cualquier** petición (`npm install`, `npm view`, `npx`), tanto desde este sandbox como desde el puente a tu equipo — confirmado con pruebas directas (`curl`, `npm view is-odd`), y no es un bloqueo de proxy/red (ese registro está explícitamente permitido en la lista de salida; el `403` viene del propio `npmjs.org`, probablemente rate-limiting sobre una IP de salida compartida en la nube). Esto impide ejecutar `ng new`, `npm install` o `ng build` en ambos entornos disponibles ahora mismo.
+
+Por eso todo el código de `web/` se ha escrito a mano, sin poder compilarlo ni verificarlo con el compilador real de Angular — solo razonado con cuidado contra la API conocida de Angular 17 (signals, standalone components, sintaxis de control de flujo, convenciones del builder `application`).
+
+**Antes de dar por buena esta milestone, necesito que ejecutes esto en tu terminal real** (no hace falta que sea a través de mí):
+
+```bash
+cd web
+npm install
+npm run build
+```
+
+y me pases cualquier error de compilación que salga — son casi con toda seguridad detalles menores (una importación, un tipo) fáciles de corregir una vez los vea.
+
+### 11.5 Despliegue: `vercel.json` (nuevo)
+
+```json
+{
+  "buildCommand": "cd web && npm install && npm run build",
+  "outputDirectory": "web/dist/web/browser",
+  "rewrites": [{ "source": "/((?!api/).*)", "destination": "/index.html" }]
+}
+```
+
+`outputDirectory` apunta a `browser/` porque el builder `application` de Angular 17 siempre escribe ahí (incluso sin SSR activado). El rewrite es un fallback de SPA estándar: Vercel sirve primero cualquier archivo estático o función de `api/` que exista en disco, y solo si no hay coincidencia cae a `index.html` — así que no interfiere con `/api/*` ni con los assets con hash del build.
+
 ## 9. Estructura de carpetas (actualizada)
 
 ```
 api/
-  calendar/[groupId]/[teamId].ts   (nuevo — adaptador Vercel)
+  calendar/[groupId]/[teamId].ts   (adaptador Vercel — ICS)
+  disciplines.ts, competitions.ts                          (nuevo — Milestone 6)
+  competitions/[competicioId]/groups.ts                     (nuevo)
+  groups/[grupId]/teams.ts                                  (nuevo)
+  matches/[groupId]/[teamId].ts                             (nuevo — JSON, no ICS)
+web/                                                          (nuevo — Milestone 6, Angular 17)
+  src/app/
+    core/{models,services,config,utils}/
+    shared/{app-shell,selector-step-list,status-badge,add-to-calendar-button}/
+    features/
+      team-selector/team-selector.page.{ts,html,scss}
+      team-calendar/team-calendar.page.{ts,html,scss}
+        next-match-hero/, match-list-item/
+  src/styles/_tokens.scss, src/styles.scss
 src/
   domain/
     team.ts, venue.ts, match-status.ts, match.ts, index.ts
+    competition-catalog.ts (nuevo — Milestone 6: Discipline, Competition, Group, TeamOption)
   shared/
     timezone.ts
   federation/
     federation-provider.ts
+    competition-catalog-provider.ts (nuevo — Milestone 6)
     fcf/
       fcf.types.ts, fcf-date.ts, fcf-bye.ts, fcf-status.mapper.ts,
       fcf.mapper.ts, fcf.provider.ts, fcf-logger.ts
+      fcf-catalog.types.ts, fcf-catalog-config.ts, fcf-http-client.ts,        (nuevo — Milestone 6)
+      fcf-catalog.mapper.ts, fcf-competition-catalog.provider.ts
   matches/
     match-filter.ts
+    team-matches.service.ts (nuevo — Milestone 6: extraído de calendar.service.ts)
   calendar/
     ics-config.ts, ics-text.ts, ics-timezone.ts, ics-status.mapper.ts, ics-generator.ts,
-    calendar.service.ts (nuevo), match-content-hash.ts (nuevo)
-  http/                              (nuevo — Milestone 3)
+    calendar.service.ts, match-content-hash.ts
+  http/
     calendar-route.ts, calendar-http-handler.ts, http-logger.ts
+    catalog-route.ts, catalog-http-handler.ts, matches-http-handler.ts        (nuevo — Milestone 6)
 scripts/
-  run-tests.mjs, smoke-fcf.ts, smoke-ics.ts, dev-server.ts (nuevo)
+  run-tests.mjs, smoke-fcf.ts, smoke-ics.ts, dev-server.ts
 tests/
   fixtures/
-    fcf.fixtures.ts, match.fixtures.ts, fake-federation-provider.ts (nuevo)
+    fcf.fixtures.ts, match.fixtures.ts, fake-federation-provider.ts
+    fcf-catalog.fixtures.ts, fake-competition-catalog-provider.ts             (nuevo — Milestone 6)
   shared/
     timezone.test.ts
   federation/fcf/
     fcf-date.test.ts, fcf-bye.test.ts, fcf-status.mapper.test.ts, fcf.mapper.test.ts, fcf.provider.test.ts
+    fcf-catalog.mapper.test.ts, fcf-competition-catalog.provider.test.ts      (nuevo — Milestone 6)
   matches/
     match-filter.test.ts
+    team-matches.service.test.ts (nuevo — Milestone 6)
   calendar/
     ics-text.test.ts, ics-timezone.test.ts, ics-status.mapper.test.ts,
     ics-generator.test.ts, ics-generator.integration.test.ts,
-    calendar.service.test.ts (nuevo), match-content-hash.test.ts (nuevo)
-  http/                              (nuevo)
+    calendar.service.test.ts, match-content-hash.test.ts
+  http/
     calendar-route.test.ts, calendar-http-handler.test.ts
+    catalog-route.test.ts, catalog-http-handler.test.ts, matches-http-handler.test.ts  (nuevo — Milestone 6)
 ```
 
-## 10. Cobertura de tests (126 tests)
+## 10. Cobertura de tests (171 tests)
 
-Milestones 1+2 (88, sin cambios de comportamiento) + Milestone 3 (38 nuevos):
+Milestones 1+2 (88, sin cambios de comportamiento) + Milestone 3 (38) + Milestone 6 backend (45 nuevos: mapper/proveedor de catálogo, `team-matches.service`, parsing y handlers de las 4 rutas de catálogo + la ruta de partidos en JSON):
 
 - `match-content-hash.ts`: estable entre llamadas para el mismo input, formato entrecomillado RFC 7232, cambia ante cambios de fecha/pabellón/estado/nombre, sensible al orden de los partidos, estable para una lista vacía.
 - `calendar.service.ts`: filtra correctamente por equipo (incluyendo el caso de los dos "La Sénia"), resuelve `calendarName` desde casa/fuera, override explícito de `calendarName`, equipo sin partidos nunca lanza, propaga errores del provider sin tragárselos, hace `trim` de `groupId`/`teamId`, ETag estable entre dos llamadas con datos idénticos, ETag distinto cuando cambia el horario, pasa `icsOptions` (duración/`now`/`uidDomain`) hasta `generateIcs`.

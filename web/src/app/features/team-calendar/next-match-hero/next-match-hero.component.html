@@ -1,0 +1,44 @@
+<div class="next-match-hero">
+  <div class="next-match-hero__meta">
+    <span class="next-match-hero__round">Jornada {{ match().round }}</span>
+    <app-status-badge [status]="match().status"></app-status-badge>
+    <span class="next-match-hero__when">{{ dayLabel() }} · {{ timeLabel() }}</span>
+  </div>
+
+  <div class="next-match-hero__teams">
+    <div class="next-match-hero__team">
+      <div class="next-match-hero__crest" [class.next-match-hero__crest--us]="isHome()">
+        @if (match().homeTeam.crest; as crest) {
+          <img [src]="crest" [alt]="match().homeTeam.name" />
+        } @else {
+          <span>{{ homeInitials() }}</span>
+        }
+      </div>
+      <span class="next-match-hero__name" [class.next-match-hero__name--us]="isHome()">{{
+        match().homeTeam.name
+      }}</span>
+    </div>
+
+    <span class="next-match-hero__vs">vs</span>
+
+    <div class="next-match-hero__team next-match-hero__team--away">
+      <span class="next-match-hero__name" [class.next-match-hero__name--us]="!isHome()">{{
+        match().awayTeam.name
+      }}</span>
+      <div class="next-match-hero__crest" [class.next-match-hero__crest--us]="!isHome()">
+        @if (match().awayTeam.crest; as crest) {
+          <img [src]="crest" [alt]="match().awayTeam.name" />
+        } @else {
+          <span>{{ awayInitials() }}</span>
+        }
+      </div>
+    </div>
+  </div>
+
+  @if (match().venue; as venue) {
+    <div class="next-match-hero__venue">
+      <span class="material-symbols-outlined" aria-hidden="true">location_on</span>
+      <span>{{ venue.name }}</span>
+    </div>
+  }
+</div>

@@ -1,0 +1,42 @@
+<div class="team-calendar">
+  @if (loading()) {
+    <p class="team-calendar__loading">Carregant…</p>
+  } @else if (error()) {
+    <p class="team-calendar__error">{{ error() }}</p>
+  } @else {
+    <header class="team-calendar__header">
+      <div class="team-calendar__crest">
+        @if (teamCrest(); as crest) {
+          <img [src]="crest" [alt]="teamName()" />
+        } @else {
+          <span>{{ teamInitialsLabel() }}</span>
+        }
+      </div>
+      <h1 class="team-calendar__name">{{ teamName() ?? 'Equip' }}</h1>
+    </header>
+
+    <section class="team-calendar__section">
+      <h2 class="team-calendar__section-title">Pròxim partit</h2>
+      @if (nextMatch(); as match) {
+        <app-next-match-hero [match]="match" [teamId]="teamId"></app-next-match-hero>
+      } @else {
+        <p class="team-calendar__empty">No hi ha cap partit programat de moment.</p>
+      }
+    </section>
+
+    @if (laterMatches().length > 0) {
+      <section class="team-calendar__section">
+        <h2 class="team-calendar__section-title">Pròxims partits</h2>
+        <div class="team-calendar__list">
+          @for (match of laterMatches(); track match.id) {
+            <app-match-list-item [match]="match" [teamId]="teamId"></app-match-list-item>
+          }
+        </div>
+      </section>
+    }
+
+    <section class="team-calendar__section">
+      <app-add-to-calendar-button [groupId]="groupId" [teamId]="teamId"></app-add-to-calendar-button>
+    </section>
+  }
+</div>
