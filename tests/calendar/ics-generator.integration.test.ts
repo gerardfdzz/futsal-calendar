@@ -5,10 +5,8 @@ import { generateIcs } from '../../src/calendar/ics-generator.js';
 import { buildFcfMatchDto } from '../fixtures/fcf.fixtures.js';
 
 /**
- * End-to-end sanity check across the two milestones: real FCF DTO shape
- * (Milestone 1) -> domain Match -> ICS text (Milestone 2), using the same
- * CODACTA/date example from the project brief. Nothing else in the test
- * suite exercises both layers together.
+ * End-to-end sanity check: real FCF DTO shape -> domain Match -> ICS
+ * text. Nothing else in the test suite exercises both layers together.
  */
 test('FCF DTO -> mapFcfMatch -> generateIcs produces the expected UID and local kickoff time', () => {
   const dto = buildFcfMatchDto({

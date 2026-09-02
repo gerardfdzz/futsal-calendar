@@ -1,8 +1,7 @@
 /**
  * Fallback label for a team's crest circle when `TeamRef.crest` is
- * `null`/absent (the FCF's `ESCUDO_CASA`/`ESCUDO_FUERA` are frequently
- * `null` — see the backend mapper's tests). Not meant to be a clever
- * abbreviation, just something short and stable to put in a circle.
+ * `null`/absent. Not meant to be a clever abbreviation, just something
+ * short and stable to put in a circle.
  */
 export function teamInitials(name: string): string {
   const words = name.trim().split(/\s+/).filter(Boolean);

@@ -2,20 +2,10 @@
  * Manual smoke test against the REAL FCF endpoint — not part of the test
  * suite (no network calls in `npm test`), just a way to eyeball real data.
  *
- * IMPORTANT: this has never been run against the live FCF endpoint yet.
- * The sandbox this project was built in has no network access to
- * www.fcf.cat, so `FcfFederationProvider` was only verified against
- * mocked responses (see tests/federation/fcf/fcf.provider.test.ts). This
- * script is the first real check — run it and tell me what comes back,
- * especially:
- *   - whether the actual JSON shape matches FcfMatchDto,
- *   - what CERRADA/ESTADO look like for matches that aren't scheduled,
- *   - whether isBye() correctly finds the "Descans" round, if any.
- *
  * Usage:
  *   npx tsx scripts/smoke-fcf.ts [groupId]
  *
- * Defaults to the group from the project brief (58162580, "TGN Gr. 14").
+ * Defaults to "TGN Gr. 14" (58162580).
  */
 import { FcfFederationProvider } from '../src/federation/fcf/fcf.provider.js';
 import { filterTeamMatches } from '../src/matches/match-filter.js';

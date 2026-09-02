@@ -2,10 +2,9 @@ import { Component } from '@angular/core';
 import { RouterLink } from '@angular/router';
 
 /**
- * App-wide header. Deliberately does NOT include "Els Meus" (favorits)
- * or "Perfil" (login) links from the desktop mockup's nav — both require
- * accounts/auth this app doesn't have, per the Milestone 6 scoping
- * decision (see project notes). Just a brand link back to `/`.
+ * App-wide header. Deliberately no "favorits"/"perfil" links — both
+ * would require accounts/auth this app doesn't have. Just a brand link
+ * back to `/`.
  */
 @Component({
   selector: 'app-shell',

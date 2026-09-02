@@ -29,10 +29,14 @@ const DEFAULT_BASE_URL = 'https://www.fcf.cat/api/competition/partidos';
 const DEFAULT_TIMEOUT_MS = 8_000;
 const DEFAULT_MAX_RETRIES = 2;
 const DEFAULT_RETRY_DELAY_MS = 300;
-// Identifies our app and gives the FCF a way to reach us if this traffic
-// is ever a problem for them. Plain browser UA strings are deliberately
-// avoided — this is a server-to-server integration, not browser spoofing.
-const DEFAULT_USER_AGENT = 'futsal-calendar-sync/0.1 (+contact: set FCF_USER_AGENT_CONTACT env var)';
+
+/** Identifies this app to the FCF and gives them a way to reach us. Reads
+ *  `FCF_USER_AGENT_CONTACT` (e.g. an email) so it's set per-deployment
+ *  without a code change. */
+function buildDefaultUserAgent(): string {
+  const contact = process.env['FCF_USER_AGENT_CONTACT'];
+  return contact ? `futsal-calendar-sync/0.1 (+contact: ${contact})` : 'futsal-calendar-sync/0.1';
+}
 
 /**
  * `FederationProvider` backed by the FCF's `partidos` JSON endpoint.
@@ -57,7 +61,7 @@ export class FcfFederationProvider implements FederationProvider {
     this.timeoutMs = options.timeoutMs ?? DEFAULT_TIMEOUT_MS;
     this.maxRetries = options.maxRetries ?? DEFAULT_MAX_RETRIES;
     this.retryDelayMs = options.retryDelayMs ?? DEFAULT_RETRY_DELAY_MS;
-    this.userAgent = options.userAgent ?? DEFAULT_USER_AGENT;
+    this.userAgent = options.userAgent ?? buildDefaultUserAgent();
     this.logger = options.logger ?? consoleFcfLogger;
   }
 

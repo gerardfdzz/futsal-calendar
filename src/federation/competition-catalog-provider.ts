@@ -3,14 +3,11 @@ import type { Competition, Discipline, Group, TeamOption } from '../domain/compe
 /**
  * Port for "browse the federation's competition catalog" — a distinct
  * concern from `FederationProvider` (which only knows how to fetch a
- * given group's fixtures). This is what backs the Milestone 6 UI's
- * discipline -> competició -> grup -> equip selector, so a user can reach
- * a valid `groupId`/`teamId` pair without already knowing one.
+ * given group's fixtures), so a user can reach a valid `groupId`/`teamId`
+ * pair without already knowing one.
  *
- * Kept as its own interface rather than folded into `FederationProvider`
- * so that code which only ever needs match data (the ICS endpoint, the
- * existing tests) doesn't have to depend on, mock, or even know about
- * catalog browsing — single responsibility, low coupling.
+ * Kept as its own interface so code that only needs match data (the ICS
+ * endpoint, most tests) doesn't have to depend on catalog browsing.
  */
 export interface CompetitionCatalogProvider {
   listDisciplines(): Promise<Discipline[]>;

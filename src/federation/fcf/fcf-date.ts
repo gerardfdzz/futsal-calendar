@@ -1,54 +1,22 @@
 /**
  * Converts the FCF's local Europe/Madrid wall-clock timestamps
- * (e.g. `"2026-09-26 18:30:00"`) into an unambiguous absolute instant
- * (`Date`, internally UTC millis).
+ * (e.g. `"2026-09-26 18:30:00"`) into an unambiguous absolute instant.
  *
- * ## Why not `new Date("2026-09-26 18:30:00")`
+ * Deliberately NOT `new Date("2026-09-26 18:30:00")`: that string has no
+ * offset, so parsing it falls back to the *host machine's* local time
+ * (implementation-defined, and never guaranteed to be Europe/Madrid on a
+ * serverless runtime) — it would silently shift kickoff times depending on
+ * where the code runs. Instead we parse the wall-clock components with a
+ * strict regex and resolve them in `Europe/Madrid` via `zonedWallTimeToUtc`
+ * (`shared/timezone.ts`, `Intl.DateTimeFormat`-backed), which picks CET/CEST
+ * correctly with no manual DST table. No date library needed for this one
+ * call site; revisit (e.g. `luxon`) only if broader date arithmetic shows up
+ * later.
  *
- * That string has no timezone/offset information, so `Date`'s parsing
- * behaviour for it is implementation-defined: V8 (Node, Chrome) currently
- * treats a space-separated, non-ISO string like this as *local time of the
- * machine running the code*, but that is not guaranteed by the spec and
- * differs across engines. A Vercel serverless function's "local time" is
- * whatever the underlying container's TZ is (normally UTC) — it is not,
- * and must never be assumed to be, Europe/Madrid. Relying on this would
- * silently shift every kickoff time by 1-2h depending on where the code
- * happens to run, and the bug would only surface in production.
- *
- * ## Strategy
- *
- * 1. Parse the string into plain wall-clock components (year/month/day/
- *    hour/minute/second) with a strict regex — no `Date` involved yet.
- * 2. Resolve those components as a wall-clock time *specifically in
- *    `Europe/Madrid`* into an absolute instant via `zonedWallTimeToUtc`
- *    (see `shared/timezone.ts`), which uses `Intl.DateTimeFormat` (backed
- *    by the IANA tzdata bundled with Node's ICU) to find that zone's UTC
- *    offset at the relevant moment — correctly picking CET (UTC+1) or
- *    CEST (UTC+2) depending on the date, with no manual DST rules to
- *    maintain.
- *
- * This has zero runtime dependencies (no luxon / date-fns-tz / moment).
- * For a single, well-isolated, thoroughly-tested conversion function, a
- * ~40-line implementation on top of a Node built-in is simpler to reason
- * about and audit than pulling in a date library for one call site. If a
- * later milestone needs broader date arithmetic (formatting, relative
- * dates, etc.) across the app, revisit this and consider `luxon` — it has
- * the cleanest IANA-zone API of the mainstream options — but don't add it
- * just for this. (The ICS generator, which needs the *inverse* conversion
- * — instant back to Europe/Madrid wall-clock, for `DTSTART;TZID=...` —
- * reuses the same `shared/timezone.ts` primitives; see
- * `calendar/ics-timezone.ts`.)
- *
- * ## Known limitation
- *
- * Europe/Madrid moves clocks forward on the last Sunday of March (02:00
- * CET -> 03:00 CEST, so 02:00-02:59 does not exist that day) and back on
- * the last Sunday of October (03:00 CEST -> 02:00 CET, so 02:00-02:59
- * occurs twice, ambiguously). `zonedWallTimeToUtc` resolves both cases
- * deterministically (see its tests) but the resolution is a reasonable
- * convention, not a "correct" answer — there isn't one. Futsal matches
- * are not scheduled in that window in practice, so this is an accepted,
- * documented gap rather than something worth over-engineering around.
+ * Known gap: during the DST transition hours (the skipped hour in March,
+ * the repeated hour in October) `zonedWallTimeToUtc` resolves
+ * deterministically but by convention, not by a single "correct" answer —
+ * accepted since matches aren't scheduled in that window.
  */
 import { zonedWallTimeToUtc, type WallTimeComponents } from '../../shared/timezone.js';
 

@@ -16,7 +16,7 @@ export interface BuildTeamCalendarParams {
 
   /** Passed through to `generateIcs` verbatim (duration, prodId,
    *  uidDomain, injectable `now`). `calendarName` lives on this params
-   *  object instead, since it may need to be *resolved* here rather than
+   *  object instead, since it may need to be resolved here rather than
    *  supplied by the caller. */
   readonly icsOptions?: Omit<GenerateIcsOptions, 'calendarName'>;
 }
@@ -32,23 +32,14 @@ export interface TeamCalendarResult {
 }
 
 /**
- * Orchestrates the full pipeline the brief describes:
+ * Orchestrates `FederationProvider.getMatches(groupId)` -> `filterTeamMatches(teamId)`
+ * -> `generateIcs(...)`. Has no knowledge of HTTP or Vercel, so it stays
+ * trivially testable with a fake `FederationProvider`.
  *
- *   FederationProvider.getMatches(groupId)
- *     -> filterTeamMatches(teamId)      (byes are already excluded by the provider)
- *     -> generateIcs(...)
- *
- * This is the one function the upcoming Vercel handler (Milestone 3)
- * calls; it has no knowledge of HTTP, Vercel, or Node's `http` module, so
- * it stays trivially testable with a fake `FederationProvider` and is
- * reusable from a future Angular-adjacent script, a cron job, etc.
- *
- * Deliberately does NOT throw or special-case an empty result: a team
- * with zero matches for this group (wrong `teamId`, or a genuinely
- * fixture-less team) still produces a valid, empty `VCALENDAR`.
- * `matchCount` is returned precisely so the HTTP layer can decide for
- * itself whether "0 matches" should mean `200` with an empty calendar or
- * `404` — that's an HTTP-semantics decision, not this function's job.
+ * Deliberately does NOT throw or special-case an empty result: a team with
+ * zero matches still produces a valid, empty `VCALENDAR`. `matchCount` is
+ * returned so the HTTP layer can decide for itself whether "0 matches"
+ * means `200` with an empty calendar or `404`.
  */
 export async function buildTeamCalendar(
   provider: FederationProvider,

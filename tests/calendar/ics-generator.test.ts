@@ -68,8 +68,6 @@ test('generateIcs: builds a VEVENT with UID, DTSTART/DTEND in Europe/Madrid, and
 });
 
 test('generateIcs: UID stays stable when date/time/venue/status change (the whole point of using CODACTA)', () => {
-  // Mirrors the exact scenario from the project brief: same CODACTA,
-  // FCF moves the match from 18:30 to 20:00.
   const before = buildMatch({ id: '4151650', startsAt: new Date('2026-09-26T16:30:00.000Z') });
   const after = buildMatch({
     id: '4151650',

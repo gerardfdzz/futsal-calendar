@@ -1,13 +1,8 @@
 /**
- * Mirrors the backend's `src/domain/match.ts` / `team.ts` / `venue.ts` /
- * `match-status.ts` — the JSON shape `/api/matches/{groupId}/{teamId}`
- * returns (`{ matches: Match[] }`).
- *
- * One deliberate difference: `startsAt` is a `string`, not a `Date`.
- * `JSON.stringify` on the backend's `Date` produces an ISO 8601 string
- * (via `Date.prototype.toJSON`), and `HttpClient` never revives it back
- * into a `Date` automatically — components construct `new Date(startsAt)`
- * at the point they need it (see `core/utils/date-format.ts`).
+ * Mirrors the backend's `Match`/`TeamRef`/`Venue`/`MatchStatus` shapes.
+ * `startsAt` is a `string`, not a `Date`: `HttpClient` never revives JSON
+ * dates automatically, so components construct `new Date(startsAt)`
+ * where needed.
  */
 export type MatchStatus = 'scheduled' | 'finished' | 'postponed' | 'cancelled' | 'unknown';
 

@@ -7,17 +7,9 @@ import type { Competition, Discipline, Group, TeamOption } from '../../core/mode
 type Step = 'discipline' | 'competition' | 'group' | 'team';
 
 /**
- * The "cerca" replacement decided for Milestone 6: a cascading selector
- * (disciplina -> competició -> grup -> equip) built on the FCF's own
- * catalog endpoints, verified live to be reliable for every discipline —
- * unlike free-text search by club name, which testing showed is broken
- * for Futbol Sala specifically (see project notes).
- *
- * Every step, including the discipline itself, starts unselected — the
- * user always sees and picks the discipline first, nothing is
- * auto-selected on load (see project notes: an earlier version
- * preselected Futbol Sala, which meant the first screen never actually
- * showed).
+ * A cascading selector (disciplina -> competició -> grup -> equip) built
+ * on the FCF's own catalog endpoints. Every step, including the
+ * discipline itself, starts unselected.
  *
  * The current selection is mirrored into the URL's query params
  * (`disciplinaId`/`competicioId`/`grupId`) so the browser's back button

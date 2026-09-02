@@ -14,7 +14,6 @@ test('parseFcfDate: resolves a CET (winter, UTC+1) kickoff correctly', () => {
 });
 
 test('parseFcfDate: an updated kickoff time for the same match still resolves correctly', () => {
-  // Mirrors the "FCF changes the match" example from the project brief.
   const original = parseFcfDate('2026-09-26 18:30:00');
   const updated = parseFcfDate('2026-09-26 20:00:00');
   assert.notEqual(original.getTime(), updated.getTime());

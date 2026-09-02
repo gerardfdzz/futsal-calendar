@@ -1,14 +1,13 @@
 /**
- * Manual smoke test for Milestone 2: fetches real matches for a team from
- * the FCF, generates the actual `.ics` file, writes it locally, and
- * prints a short summary — so you can open the file in Apple
- * Calendar/Google Calendar/any ICS validator and eyeball it before we
- * wire up the real Vercel endpoint (Milestone 3).
+ * Manual smoke test: fetches real matches for a team from the FCF,
+ * generates the actual `.ics` file, writes it locally, and prints a
+ * short summary — so you can open the file in a calendar app or ICS
+ * validator and eyeball it.
  *
  * Usage:
  *   npx tsx scripts/smoke-ics.ts [groupId] [teamId]
  *
- * Defaults to CFS LA SÉNIA in group 58162580, per the project brief.
+ * Defaults to CFS LA SÉNIA in group 58162580.
  */
 import { writeFileSync } from 'node:fs';
 import { FcfFederationProvider } from '../src/federation/fcf/fcf.provider.js';

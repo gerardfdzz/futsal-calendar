@@ -7,9 +7,8 @@ export interface SelectableOption {
 
 /**
  * Reusable card-list used by every step of the team-selector wizard
- * (disciplina / competició / grup / equip) — same visual language as the
- * `resultats_de_cerca` mockup's result cards, reused instead of building
- * four near-identical lists.
+ * (disciplina / competició / grup / equip), instead of building four
+ * near-identical lists.
  */
 @Component({
   selector: 'app-selector-step-list',

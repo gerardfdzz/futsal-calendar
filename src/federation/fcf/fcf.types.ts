@@ -4,10 +4,7 @@
  * Every field is typed exactly as the FCF sends it: strings, including for
  * things that are "really" numbers or booleans, and nullable where we have
  * observed `null` in practice. Do NOT tighten these types based on
- * assumptions — if a field turns out to always be non-null, confirm it
- * against real responses first. This interface is only ever consumed by
- * `fcf.mapper.ts` / `fcf-status.mapper.ts` / `fcf.provider.ts`; nothing
- * outside `federation/fcf/` should import it.
+ * assumptions. Nothing outside `federation/fcf/` should import it.
  */
 export interface FcfMatchDto {
   readonly CODGRUPO: string;
@@ -46,9 +43,8 @@ export interface FcfMatchDto {
 
 /**
  * The endpoint groups matches by jornada (matchday) number, encoded as the
- * object's own keys (e.g. `"1"`, `"2"`, ...). The FCF also repeats the
- * jornada on each match as `JORNADA`, but we treat the object key as
- * authoritative — see the comment in `fcf.provider.ts` for why.
+ * object's own keys (e.g. `"1"`, `"2"`, ...). We treat the object key as
+ * authoritative over the per-match `JORNADA` field — see `fcf.provider.ts`.
  */
 export type FcfMatchesResponse = Record<string, FcfMatchDto[]>;
 

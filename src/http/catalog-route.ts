@@ -1,12 +1,9 @@
 /**
- * Route/query parsing for the Milestone 6 JSON endpoints, following the
- * exact same rationale as `calendar-route.ts`: parse straight from the
- * raw request URL rather than relying on Vercel's own query/route-param
- * injection, so the parsing logic (and its tests) is identical whether a
- * request came through Vercel or through `scripts/dev-server.ts`. None
- * of these routes have `calendar-route.ts`'s `.ics`-suffix-stripping
- * problem, but sharing one parsing strategy across every endpoint is
- * simpler to reason about than mixing two.
+ * Route/query parsing for the JSON endpoints, following the same
+ * rationale as `calendar-route.ts`: parse straight from the raw request
+ * URL rather than relying on Vercel's own query/route-param injection, so
+ * behavior is identical whether a request came through Vercel or through
+ * `scripts/dev-server.ts`.
  */
 export class InvalidRouteError extends Error {
   constructor(message: string) {
@@ -72,8 +69,8 @@ export function parseMatchesRoute(rawUrl: string): { groupId: string; teamId: st
 
 function toUrl(rawUrl: string): URL {
   try {
-    // Base URL is arbitrary/unused, same as calendar-route.ts — `rawUrl`
-    // is always a path, `URL` just requires a base to parse a relative one.
+    // Base URL is arbitrary/unused — `rawUrl` is always a path, `URL`
+    // just requires a base to parse a relative one.
     return new URL(rawUrl, 'http://localhost');
   } catch {
     throw new InvalidRouteError(`Could not parse request URL: "${rawUrl}"`);

@@ -5,11 +5,9 @@ import { teamInitials } from '../../../core/utils/team-initials';
 import { StatusBadgeComponent } from '../../../shared/status-badge/status-badge.component';
 
 /**
- * The featured card for the team's next fixture — same visual language
- * as the `calendari_de_l_equip` mockup's "Pròxim Partit" card. `teamId`
- * decides which side gets the bold/highlighted treatment; it isn't
- * assumed to always be the home team (see `filterTeamMatches`, which
- * returns matches where the team is either side).
+ * The featured card for the team's next fixture. `teamId` decides which
+ * side gets the bold/highlighted treatment; it isn't assumed to always be
+ * the home team.
  */
 @Component({
   selector: 'app-next-match-hero',

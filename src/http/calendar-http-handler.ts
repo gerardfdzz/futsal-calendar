@@ -10,13 +10,9 @@ const ALLOWED_METHODS = ['GET', 'HEAD'];
  * expressed as `Cache-Control: max-age`.
  *
  * This is NOT a promise that changes propagate within 30 minutes — we
- * cannot control when Apple Calendar (or any other subscriber) actually
- * re-polls a `webcal://` URL; iOS in particular is known to sometimes
- * wait much longer regardless of what a server sends. It only bounds how
- * long an HTTP-cache-respecting client (a browser, `curl`, some
- * intermediate proxy) may serve a stale copy without asking us again. See
- * README's "Sincronización" section for the honest framing to give
- * end users.
+ * cannot control when Apple Calendar (or any subscriber) actually
+ * re-polls a `webcal://` URL. It only bounds how long an HTTP-cache-
+ * respecting client may serve a stale copy without asking us again.
  */
 const CACHE_MAX_AGE_SECONDS = 30 * 60;
 
@@ -41,14 +37,10 @@ export interface CalendarHttpResponse {
  * description of the response, and never touches Node's `http` module or
  * Vercel's request/response types directly.
  *
- * That split is deliberate: both the real Vercel handler
- * (`api/calendar/[groupId]/[teamId].ts`) and the local dev server
- * (`scripts/dev-server.ts`, for testing without a Vercel account) are
- * thin adapters that call this function and translate the result into
- * their own response API (`res.writeHead(status, headers); res.end(body)`
- * works identically for both, since Vercel's Node runtime response is
- * ultimately a `http.ServerResponse`). This function itself is trivial to
- * unit test with plain objects — no mocking Vercel or Node's `http`.
+ * Both the real Vercel handler and the local dev server are thin adapters
+ * that call this function and translate the result into their own
+ * response API. This function itself is trivial to unit test with plain
+ * objects — no mocking Vercel or Node's `http`.
  */
 export async function handleCalendarRequest(
   provider: FederationProvider,

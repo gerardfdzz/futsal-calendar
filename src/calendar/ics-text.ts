@@ -1,12 +1,10 @@
 /**
  * RFC 5545 TEXT escaping and line folding (§3.3.11 and §3.1).
  *
- * These two functions are precisely the "fragile if hand-rolled" part the
- * project brief warned about, so they get outsized test coverage
- * (`tests/calendar/ics-text.test.ts`) — byte-level, not just
- * character-level, because RFC 5545's 75-octet line limit is measured in
- * UTF-8 *bytes*, and Catalan/Spanish team and venue names are full of
- * multi-byte accented characters (á, é, í, ó, ú, ñ, ç, ...).
+ * Tested at the byte level, not just character level, because RFC 5545's
+ * 75-octet line limit is measured in UTF-8 *bytes*, and Catalan/Spanish
+ * team and venue names are full of multi-byte accented characters (á, é,
+ * í, ó, ú, ñ, ç, ...).
  */
 
 export const CRLF = '\r\n';

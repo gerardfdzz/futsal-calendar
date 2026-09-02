@@ -4,26 +4,13 @@ export const ICS_TIME_ZONE = 'Europe/Madrid';
 
 /**
  * Static RFC 5545 VTIMEZONE block for Europe/Madrid, embedded so the
- * calendar is fully self-contained (a client doesn't have to already know
- * what "Europe/Madrid" means to render `DTSTART;TZID=Europe/Madrid:...`
- * correctly — RFC 5545 recommends including the VTIMEZONE definition for
- * any TZID a calendar references).
+ * calendar is fully self-contained (RFC 5545 recommends including the
+ * VTIMEZONE definition for any TZID a calendar references).
  *
- * This is the standard EU DST rule that has applied to Europe/Madrid
- * since 1996 (last Sunday of March 01:00 UTC -> CEST, last Sunday of
- * October 01:00 UTC -> CET) — the same rule the IANA tzdata encodes for
- * this zone, expressed as RRULE so it's correct for every year without
- * updates. It is intentionally a static, hand-written constant rather
- * than something computed at request time: this is exactly the kind of
- * "well-known, unchanging table" that calendar libraries (including
- * `ical-generator`, see the README's Milestone 2 write-up) also ship as a
- * static lookup rather than deriving dynamically, so hand-writing it here
- * is not the fragile part of ICS generation — the escaping/folding in
- * `ics-text.ts` is, and that's where the real engineering care went.
- *
- * If the EU ever changes its DST policy, this block (and only this
- * block) needs updating — nothing else in the codebase encodes timezone
- * rules.
+ * Encodes the standard EU DST rule for Europe/Madrid (last Sunday of
+ * March -> CEST, last Sunday of October -> CET) as an RRULE so it's
+ * correct for every year without updates. If the EU ever changes its DST
+ * policy, this block (and only this block) needs updating.
  */
 export const MADRID_VTIMEZONE_LINES: readonly string[] = [
   'BEGIN:VTIMEZONE',

@@ -1,12 +1,10 @@
 import { Component, computed, input, signal } from '@angular/core';
 
 /**
- * The two ways a subscriber can start following a team's calendar:
- * a `webcal://` link (opens Apple Calendar's native "add subscription"
- * dialog directly on iOS/macOS — see Milestone 4's real-device
- * verification) and a plain HTTPS URL to copy into any other calendar
- * app. Never promises instant sync — see the app's copy below and the
- * project README's "Sincronización" section for why.
+ * The two ways a subscriber can start following a team's calendar: a
+ * `webcal://` link (opens Apple Calendar's native "add subscription"
+ * dialog directly on iOS/macOS) and a plain HTTPS URL to copy into any
+ * other calendar app. Never promises instant sync.
  */
 @Component({
   selector: 'app-add-to-calendar-button',

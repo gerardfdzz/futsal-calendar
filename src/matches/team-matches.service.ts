@@ -4,10 +4,8 @@ import { filterTeamMatches } from './match-filter.js';
 
 /**
  * `FederationProvider.getMatches(groupId) -> filterTeamMatches(teamId)`,
- * extracted out of `calendar.service.ts` so it can be reused by the new
- * JSON matches endpoint (Milestone 6) without going through ICS
- * generation at all. `buildTeamCalendar` now calls this too — same
- * behaviour, no duplication of the two-line pipeline.
+ * shared by `calendar.service.ts` and the JSON matches endpoint so
+ * neither duplicates this pipeline.
  */
 export async function getTeamMatches(
   provider: FederationProvider,

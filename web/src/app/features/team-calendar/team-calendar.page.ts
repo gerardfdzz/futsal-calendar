@@ -10,10 +10,9 @@ import { AddToCalendarButtonComponent } from '../../shared/add-to-calendar-butto
 /**
  * `/equip/:groupId/:teamId` — a single team's upcoming fixtures plus the
  * subscribe/copy-URL controls. `groupId`/`teamId` are read once from the
- * route snapshot (not reactively): this page is always reached via a
- * fresh navigation from the wizard or a shared link, never by changing
- * just the route params on an already-open instance, so a snapshot read
- * keeps the component simpler without losing anything real.
+ * route snapshot rather than reactively, since this page is always
+ * reached via a fresh navigation, never by changing route params on an
+ * already-open instance.
  */
 @Component({
   selector: 'app-team-calendar-page',
@@ -33,11 +32,9 @@ export class TeamCalendarPage {
   readonly loading = signal(true);
   readonly error = signal<string | undefined>(undefined);
 
-  /** There's no `groupName`/team-name endpoint of its own — every match
-   *  already carries this team's name as either `homeTeam` or `awayTeam`
-   *  (see `Match`'s doc comment for why the domain model has no
-   *  `groupName` to lean on here either), so the header is derived from
-   *  whichever match happens to load first. */
+  /** There's no team-name endpoint of its own — every match already
+   *  carries this team's name as either `homeTeam` or `awayTeam`, so the
+   *  header is derived from whichever match happens to load first. */
   readonly teamName = computed(() => this.pickOurTeam()?.name);
   readonly teamCrest = computed(() => this.pickOurTeam()?.crest);
   readonly teamInitialsLabel = computed(() => {

@@ -18,11 +18,9 @@ export interface FcfCompetitionCatalogProviderOptions extends FcfHttpClientOptio
 }
 
 /**
- * `CompetitionCatalogProvider` backed by the same FCF `competition/*`
- * family of endpoints the site's own selector uses
- * (`disciplines`/`competicions`/`grupos`/`equipos`) — verified directly
- * against the real FCF site (both for Futbol Sala and, to confirm the
- * shape generalizes, Futbol 11) before writing this.
+ * `CompetitionCatalogProvider` backed by the FCF `competition/*` family
+ * of endpoints the site's own selector uses
+ * (`disciplines`/`competicions`/`grupos`/`equipos`).
  *
  * Like `FcfFederationProvider`, this is the ONLY place in the codebase
  * allowed to know these endpoint paths or the raw `{value, label}` shape

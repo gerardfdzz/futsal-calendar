@@ -16,16 +16,13 @@ export class FcfMappingError extends Error {
 /**
  * Maps one raw FCF match into our domain `Match`.
  *
- * `round` is taken from the jornada group key the DTO was found under
- * (see `fcf.provider.ts`), not from `dto.JORNADA` — see that file for why.
- * When the two disagree we log a warning but still trust the group key,
- * since it is what the FCF's own response structure asserts.
+ * `round` is taken from the jornada group key the DTO was found under, not
+ * from `dto.JORNADA` (see `fcf.provider.ts`); a mismatch is logged but the
+ * group key wins.
  *
  * Throws `FcfMappingError` only for genuinely unrecoverable input (an
- * unparsable `COMIENZO1`) — everything else (null crest, empty venue,
- * missing club id, ...) has a well-defined, tested fallback and never
- * throws, because those are documented-as-possible shapes, not format
- * breakage.
+ * unparsable `COMIENZO1`) — everything else has a well-defined, tested
+ * fallback and never throws.
  */
 export function mapFcfMatch(dto: FcfMatchDto, round: number, logger: FcfLogger = noopFcfLogger): Match {
   if (dto.JORNADA.trim() !== '' && Number(dto.JORNADA) !== round) {
@@ -85,11 +82,8 @@ function mapVenue(
 ): Venue | undefined {
   const name = rawName.trim();
   if (name === '') {
-    // No venue name -> we treat the match as having no venue at all,
-    // rather than an empty-string Venue. Any coordinates present without
-    // a name are discarded too: a Venue without at least a name isn't a
-    // useful LOCATION for the ICS event, and we've never observed that
-    // combination in real data.
+    // No venue name -> no Venue at all (a Venue without a name isn't a
+    // useful LOCATION for the ICS event), discarding any coordinates too.
     return undefined;
   }
 

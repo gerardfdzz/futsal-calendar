@@ -16,56 +16,30 @@ import { mapMatchStatusToIcsStatus } from './ics-status.mapper.js';
  *
  * By design this function does NOT filter by team, exclude byes, or talk
  * to the FCF — it takes whatever `Match[]` it's given and turns it into
- * ICS. Composing "fetch -> filter -> generate" is the future HTTP
- * endpoint's job (Milestone 3); keeping this function pure and
- * side-effect-free is what makes it trivial to unit test without mocking
- * anything.
+ * ICS, which keeps it pure and trivial to unit test.
  *
  * ## SEQUENCE, LAST-MODIFIED, DTSTAMP — without persistence
  *
- * The brief asked for careful analysis here, so to be explicit about
- * what's actually happening:
+ * - **DTSTAMP** is `now` on every generation, as RFC 5545 expects for a
+ *   dynamically generated `METHOD:PUBLISH` calendar: it marks when this
+ *   representation was produced, not when the data last changed.
+ * - **LAST-MODIFIED** is also `now`, because without persistence we have
+ *   no record of when a match's data actually last changed (the FCF DTO
+ *   doesn't expose one either) — any other value would be fabricated.
+ * - **SEQUENCE is fixed at `0`.** A real, monotonically increasing
+ *   SEQUENCE would require remembering each match's previous version to
+ *   detect changes, which means persistence. This is not a correctness
+ *   bug here: SEQUENCE mainly matters for iTIP scheduling
+ *   (REQUEST/REPLY/CANCEL between an organizer and attendees), and this
+ *   is a `METHOD:PUBLISH` read-only subscription with no attendees —
+ *   calendar clients key updates off UID equality plus the event's
+ *   current content on each re-fetch, not off SEQUENCE increments.
  *
- * - **DTSTAMP** is set to `now` (generation time) for every event, every
- *   time. This is exactly what RFC 5545 expects for a dynamically
- *   generated `METHOD:PUBLISH` calendar — DTSTAMP marks when *this*
- *   representation of the object was produced, not when the underlying
- *   data last changed.
- * - **LAST-MODIFIED** is also set to `now`, for a more pointed reason: we
- *   have no persistence, so we have no record of when a match's data
- *   *actually* last changed, and the FCF's own DTO doesn't expose an
- *   "updated at" field either. Claiming any other timestamp would be
- *   fabricated. Setting it to "now" is the only value we can state
- *   honestly on every generation.
- * - **SEQUENCE is fixed at `0`** for every event, always. RFC 5545 defines
- *   SEQUENCE to let a client tell that a specific UID has been revised
- *   and order updates — but computing a real, monotonically increasing
- *   SEQUENCE requires remembering the previous version of each match
- *   (by CODACTA) to detect that something changed, which means
- *   persistence. Without it, incrementing SEQUENCE would either be
- *   arbitrary (defeating its purpose) or require re-deriving it from
- *   nothing, which isn't possible.
- *
- *   This is deliberately NOT a blocker for the MVP: SEQUENCE is primarily
- *   meaningful for **iTIP scheduling** (REQUEST/REPLY/CANCEL messages
- *   between an organizer and attendees, RFC 5546), which needs it to
- *   resolve out-of-order delivery of scheduling messages. We are not
- *   doing iTIP scheduling — this is a `METHOD:PUBLISH` read-only
- *   subscription with no attendees. For that case, calendar clients
- *   (Apple Calendar included) key updates off of **UID equality plus the
- *   event's current content** on each re-fetch, not off SEQUENCE
- *   increments. A constant SEQUENCE is a well-understood limitation of
- *   stateless generation, not a correctness bug for this use case.
- *
- *   **If real usage shows a client failing to pick up updates because of
- *   this**, the fix is Milestone 5+: persist, per match, a content hash
- *   (or just DTSTART/venue/status) plus its own SEQUENCE counter in
- *   Supabase/Postgres; on each sync, compare the new data against the
- *   stored hash, bump SEQUENCE and refresh LAST-MODIFIED only when it
- *   actually changed, and leave it untouched otherwise. That's a small,
- *   additive change — it does not require re-architecting this
- *   generator, only feeding it real SEQUENCE/LAST-MODIFIED values instead
- *   of the constants used here.
+ *   If real usage shows a client failing to pick up updates, the fix is
+ *   to persist a per-match content hash plus its own SEQUENCE counter,
+ *   and bump SEQUENCE/LAST-MODIFIED only when the stored hash changes —
+ *   an additive change that doesn't require re-architecting this
+ *   generator.
  */
 export function generateIcs(matches: readonly Match[], options: GenerateIcsOptions): string {
   const prodId = options.prodId ?? DEFAULT_PROD_ID;

@@ -25,10 +25,8 @@ export interface TeamMatchesHttpResponse {
  * `GET /api/matches/{groupId}/{teamId}` — the same
  * `FederationProvider.getMatches -> filterTeamMatches` pipeline
  * `buildTeamCalendar` uses (via the shared `getTeamMatches` helper), but
- * returned as plain JSON instead of an ICS body. This is what the
- * Angular team-calendar page (Milestone 6) reads to render "Pròxim
- * Partit" / "Propers Partits" — it needs structured data, not a `.ics`
- * file to parse client-side.
+ * returned as plain JSON instead of an ICS body, for clients that need
+ * structured match data rather than a `.ics` file to parse.
  */
 export async function handleTeamMatchesRequest(
   provider: FederationProvider,

@@ -1,10 +1,9 @@
 /**
- * Local dev server — now covers every Milestone 1-6 JSON/ICS endpoint,
- * not just the calendar one. Mounts the exact same framework-agnostic
- * handler functions the real Vercel deployment uses (see `api/*`) on a
- * plain `node:http` server, with a small path-based router in front of
- * them — nothing Vercel-specific is re-implemented or mocked here, so
- * what you see locally is what ships.
+ * Local dev server. Mounts the exact same framework-agnostic handler
+ * functions the real Vercel deployment uses (see `api/*`) on a plain
+ * `node:http` server, with a small path-based router in front of them —
+ * nothing Vercel-specific is re-implemented or mocked here, so what you
+ * see locally is what ships.
  *
  * Usage:
  *   npx tsx scripts/dev-server.ts [port]

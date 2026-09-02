@@ -1,9 +1,7 @@
 /**
- * Small, native `Intl`-based formatters for match kickoff times — no
- * Angular locale registration needed (that would require
- * `registerLocaleData(localeCa)` plus a `LOCALE_ID` provider just for
- * two date fields; `Intl.DateTimeFormat('ca-ES', ...)` gets the same
- * result with nothing to wire up).
+ * Native `Intl`-based formatters for match kickoff times — avoids the
+ * Angular locale registration (`registerLocaleData` + `LOCALE_ID`) that
+ * would otherwise be needed just for two date fields.
  */
 const dayMonthFormatter = new Intl.DateTimeFormat('ca-ES', { day: 'numeric', month: 'short' });
 const timeFormatter = new Intl.DateTimeFormat('ca-ES', { hour: '2-digit', minute: '2-digit' });

@@ -18,24 +18,14 @@ export class InvalidCalendarRouteError extends Error {
  * ignored) — independent of Vercel's own dynamic-route query injection.
  *
  * We deliberately do NOT rely on Vercel's `req.query.groupId` /
- * `req.query.teamId` (populated from the `api/calendar/[groupId]/
- * [teamId].ts` file route) for two reasons:
- *
- *  1. Vercel's file-based routing captures the WHOLE final path segment
- *     into `teamId`, `.ics` extension included — a request for
- *     `.../54755993.ics` arrives as `query.teamId === "54755993.ics"`.
- *     We'd have to strip the suffix here regardless of where the raw
- *     value came from.
- *  2. Parsing directly from the request URL means this exact
- *     route-parsing behaviour is identical whether the request came
- *     through Vercel or through our own local `node:http`-based dev
- *     server (`scripts/dev-server.mjs`), which has no Vercel-style
- *     route-param injection at all. One function, one set of tests,
- *     two callers.
+ * `req.query.teamId`: Vercel's file-based routing captures the WHOLE
+ * final path segment into `teamId`, `.ics` extension included, so we'd
+ * have to strip the suffix regardless; parsing straight from the URL
+ * also makes this behave identically through Vercel or our local
+ * `node:http`-based dev server, which has no route-param injection at all.
  *
  * Pure and framework-free: takes a plain string (`req.url`), returns
- * plain data or throws `InvalidCalendarRouteError`. No mocking of
- * Vercel or Node's `http` module needed to test it.
+ * plain data or throws `InvalidCalendarRouteError`.
  */
 export function parseCalendarRoute(rawUrl: string): CalendarRouteParams {
   let pathname: string;

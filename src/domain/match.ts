@@ -6,16 +6,9 @@ import type { MatchStatus } from './match-status.js';
  * A single fixture, in our own vocabulary — no FCF field names leak past
  * the federation layer's mapper.
  *
- * Deliberate deviation from the domain model sketched in the project
- * brief: there is no `groupName` here. The `/api/competition/partidos`
- * response (the only FCF source this app talks to) never sends a
- * human-readable group name such as "TGN Gr. 14" — that string only
- * exists on the competition *page*, which we are explicitly not
- * scraping. Inventing it from `CODGRUPO`/`GRUPO` would violate the "don't
- * assume unverified FCF behaviour" rule, so for now callers that need a
- * display name for the group must supply one out of band (e.g. static
- * config keyed by groupId). Re-introduce `groupName` here if/when we
- * identify a real source for it.
+ * There is no `groupName` here: the `/api/competition/partidos` response
+ * never sends a human-readable group name, so callers needing one must
+ * supply it out of band (e.g. static config keyed by groupId).
  */
 export interface Match {
   /** Stable domain id, derived 1:1 from the FCF `CODACTA`. Never changes

@@ -3,17 +3,10 @@ import { consoleFcfLogger, type FcfLogger } from './fcf-logger.js';
 /**
  * Small shared "fetch JSON from the FCF, with timeout/retry" helper.
  *
- * `FcfFederationProvider` (the original, already-deployed provider for
- * `/api/competition/partidos`) has its own copy of this same
- * timeout/retry/backoff logic, predating this file. It is deliberately
- * NOT refactored to use this client: that provider is Milestone 1-4's
- * tested, production match-sync path, and touching it purely for DRY
- * carries real regression risk for zero user-facing benefit. This client
- * exists so the NEW competition-catalog provider (Milestone 6) doesn't
- * have to duplicate ~100 lines of retry logic a second time. If this
- * client proves itself here, unifying `FcfFederationProvider` onto it is
- * a reasonable follow-up once it's had time to bake — not bundled into
- * this change.
+ * `FcfFederationProvider` has its own copy of this same timeout/retry/
+ * backoff logic and is deliberately NOT refactored onto this client:
+ * it's an already-tested, production match-sync path, and touching it
+ * purely for DRY carries regression risk for no user-facing benefit.
  */
 export class FcfHttpError extends Error {
   constructor(message: string, options?: { cause?: unknown }) {
@@ -37,7 +30,11 @@ export interface FcfHttpClientOptions {
 const DEFAULT_TIMEOUT_MS = 8_000;
 const DEFAULT_MAX_RETRIES = 2;
 const DEFAULT_RETRY_DELAY_MS = 300;
-const DEFAULT_USER_AGENT = 'futsal-calendar-sync/0.1 (+contact: set FCF_USER_AGENT_CONTACT env var)';
+
+function buildDefaultUserAgent(): string {
+  const contact = process.env['FCF_USER_AGENT_CONTACT'];
+  return contact ? `futsal-calendar-sync/0.1 (+contact: ${contact})` : 'futsal-calendar-sync/0.1';
+}
 
 export class FcfHttpClient {
   private readonly fetchFn: FetchLike;
@@ -52,7 +49,7 @@ export class FcfHttpClient {
     this.timeoutMs = options.timeoutMs ?? DEFAULT_TIMEOUT_MS;
     this.maxRetries = options.maxRetries ?? DEFAULT_MAX_RETRIES;
     this.retryDelayMs = options.retryDelayMs ?? DEFAULT_RETRY_DELAY_MS;
-    this.userAgent = options.userAgent ?? DEFAULT_USER_AGENT;
+    this.userAgent = options.userAgent ?? buildDefaultUserAgent();
     this.logger = options.logger ?? consoleFcfLogger;
   }
 

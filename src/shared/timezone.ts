@@ -1,7 +1,6 @@
 /**
  * Low-level IANA-timezone <-> instant conversions, built on `Intl` only
- * (no runtime dependency — see the rationale in `federation/fcf/fcf-date.ts`,
- * which was the first caller of this and still has the fullest write-up).
+ * (no runtime dependency — see the rationale in `federation/fcf/fcf-date.ts`).
  *
  * This module has exactly two directions:
  *   - `zonedWallTimeToUtc`: wall-clock components *in a given zone* -> instant.

@@ -4,11 +4,8 @@ import type { Observable } from 'rxjs';
 import type { Competition, Discipline, Group, TeamOption } from '../models/catalog.model';
 
 /**
- * Thin wrapper around the backend's catalog-browsing endpoints
- * (`/api/disciplines`, `/api/competitions`,
- * `/api/competitions/{id}/groups`, `/api/groups/{id}/teams`) — see
- * `src/http/catalog-http-handler.ts` on the backend for what each
- * returns. Same-origin relative URLs: this app is deployed alongside the
+ * Thin wrapper around the backend's catalog-browsing endpoints. Uses
+ * same-origin relative URLs since this app is deployed alongside the
  * Vercel functions, so no base URL configuration is needed.
  */
 @Injectable({ providedIn: 'root' })

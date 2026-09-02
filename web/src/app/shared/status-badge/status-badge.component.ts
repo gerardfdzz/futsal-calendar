@@ -2,13 +2,9 @@ import { Component, computed, input } from '@angular/core';
 import type { MatchStatus } from '../../core/models/match.model';
 
 /**
- * Only the "Programat" variant from DESIGN.md's status-badge spec is
- * activated — the backend's `mapFcfStatus` only confirms `'scheduled'`
- * against real data so far (see `fcf-status.mapper.ts`); every other
- * `MatchStatus` value (including `'unknown'`) renders as a neutral
- * "Per confirmar" label instead of guessing at "Ajornat"/"En Directe"
- * styling for a status we can't actually distinguish yet. Extend this
- * once the backend's status codes are extended for real.
+ * Only 'scheduled' renders as "Programat" — every other status
+ * (including 'unknown') shows a neutral "Per confirmar" label, since the
+ * backend only confirms that one status against real data so far.
  */
 @Component({
   selector: 'app-status-badge',

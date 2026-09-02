@@ -1,16 +1,11 @@
 /**
- * Design tokens translated from the "Llum Esportiva" design system
- * (DESIGN.md, Milestone 6 UX handoff). Kept as plain CSS custom
- * properties rather than SCSS variables so component styles can
- * reference them without an `@use` import in every file, and so a
- * future theming need (unlikely for this MVP) wouldn't require
- * recompiling anything.
- *
- * This app deliberately ships ONE palette — DESIGN.md doesn't specify a
- * dark variant, and the brief never asked for one.
+ * Design tokens kept as plain CSS custom properties rather than SCSS
+ * variables so component styles can reference them without an `@use`
+ * import in every file, and so a future theming need wouldn't require
+ * recompiling anything. Ships a single palette — no dark variant.
  */
 :root {
-  // Colors — Material-3-style token names, straight off DESIGN.md.
+  // Colors — Material-3-style token names.
   --color-primary: #506600;
   --color-on-primary: #ffffff;
   --color-primary-container: #ccff00;
@@ -32,13 +27,11 @@
   --color-error: #ba1a1a;
   --color-error-container: #ffdad6;
 
-  // DESIGN.md's "Components" section uses a simpler, slightly different
-  // hex set for buttons/cards/inputs than the Material-3 token block
-  // above — both are reproduced here verbatim rather than reconciled,
-  // since that's exactly what the handoff document itself does.
+  // Buttons/cards/inputs use a simpler, slightly different hex set than
+  // the Material-3 token block above — reproduced verbatim, not reconciled.
   --color-button-primary-bg: #ccff00;
   --color-button-primary-text: #111827;
-  --color-button-primary-bg-pressed: #b8e600; // ~10% darker, per "States"
+  --color-button-primary-bg-pressed: #b8e600; // ~10% darker
   --color-border: #e5e7eb;
   --color-card-bg: #f3f4f6;
   --color-input-bg: #f9fafb;
@@ -46,18 +39,14 @@
   --color-placeholder: #9ca3af;
   --color-chevron: #d1d5db;
 
-  // Status badges (Programat is the only variant this app activates —
-  // see StatusBadgeComponent's doc comment for why).
   --color-status-scheduled-bg: #e7e8e9;
   --color-status-scheduled-text: #191c1d;
   --color-status-unknown-bg: #edeeef;
   --color-status-unknown-text: #444933;
 
-  // Typography
   --font-headline: 'Hanken Grotesk', system-ui, sans-serif;
   --font-body: 'Inter', system-ui, sans-serif;
 
-  // Radius
   --radius-sm: 0.25rem;
   --radius-default: 0.5rem;
   --radius-md: 0.75rem;
@@ -65,7 +54,7 @@
   --radius-xl: 1.5rem;
   --radius-full: 9999px;
 
-  // Spacing — 8px grid, plus the mockups' 20px container margin.
+  // Spacing — 8px grid, plus a 20px container margin.
   --space-base: 4px;
   --space-xs: 8px;
   --space-sm: 12px;
