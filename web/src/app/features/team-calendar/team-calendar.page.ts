@@ -2,7 +2,6 @@ import { Component, computed, inject, signal } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { TeamMatchesService } from '../../core/services/team-matches.service';
 import type { Match } from '../../core/models/match.model';
-import { teamInitials } from '../../core/utils/team-initials';
 import { NextMatchHeroComponent } from './next-match-hero/next-match-hero.component';
 import { MatchListItemComponent } from './match-list-item/match-list-item.component';
 import { AddToCalendarButtonComponent } from '../../shared/add-to-calendar-button/add-to-calendar-button.component';
@@ -36,11 +35,6 @@ export class TeamCalendarPage {
    *  carries this team's name as either `homeTeam` or `awayTeam`, so the
    *  header is derived from whichever match happens to load first. */
   readonly teamName = computed(() => this.pickOurTeam()?.name);
-  readonly teamCrest = computed(() => this.pickOurTeam()?.crest);
-  readonly teamInitialsLabel = computed(() => {
-    const name = this.teamName();
-    return name ? teamInitials(name) : '';
-  });
 
   readonly upcomingMatches = computed(() => {
     const now = Date.now();

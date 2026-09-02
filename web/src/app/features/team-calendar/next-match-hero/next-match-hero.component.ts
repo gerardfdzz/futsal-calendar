@@ -1,7 +1,6 @@
 import { Component, computed, input } from '@angular/core';
 import type { Match } from '../../../core/models/match.model';
 import { formatMatchDay, formatMatchTime } from '../../../core/utils/date-format';
-import { teamInitials } from '../../../core/utils/team-initials';
 import { StatusBadgeComponent } from '../../../shared/status-badge/status-badge.component';
 
 /**
@@ -24,6 +23,4 @@ export class NextMatchHeroComponent {
   readonly kickoff = computed(() => new Date(this.match().startsAt));
   readonly dayLabel = computed(() => formatMatchDay(this.kickoff()));
   readonly timeLabel = computed(() => formatMatchTime(this.kickoff()));
-  readonly homeInitials = computed(() => teamInitials(this.match().homeTeam.name));
-  readonly awayInitials = computed(() => teamInitials(this.match().awayTeam.name));
 }

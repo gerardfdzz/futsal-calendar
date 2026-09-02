@@ -5,13 +5,6 @@
     <p class="team-calendar__error">{{ error() }}</p>
   } @else {
     <header class="team-calendar__header">
-      <div class="team-calendar__crest">
-        @if (teamCrest(); as crest) {
-          <img [src]="crest" [alt]="teamName()" />
-        } @else {
-          <span>{{ teamInitialsLabel() }}</span>
-        }
-      </div>
       <h1 class="team-calendar__name">{{ teamName() ?? 'Equip' }}</h1>
     </header>
 
