@@ -1,0 +1,24 @@
+{
+  "name": "futsal-calendar",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Sincronizacion de calendarios ICS de partidos FCF con Apple Calendar",
+  "engines": {
+    "node": ">=20.11"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json --noEmit",
+    "test": "node scripts/run-tests.mjs",
+    "test:watch": "node scripts/run-tests.mjs --watch",
+    "smoke:fcf": "tsx scripts/smoke-fcf.ts",
+    "smoke:ics": "tsx scripts/smoke-ics.ts",
+    "dev": "tsx scripts/dev-server.ts"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "@types/node": "^22.10.0",
+    "tsx": "^4.19.0",
+    "typescript": "^5.7.2"
+  }
+}
