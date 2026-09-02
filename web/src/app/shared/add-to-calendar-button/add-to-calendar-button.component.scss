@@ -22,6 +22,9 @@
   }
 
   &__secondary {
+    display: flex;
+    align-items: center;
+    justify-content: center;
     height: 44px;
     border-radius: var(--radius-default);
     background: var(--color-surface);

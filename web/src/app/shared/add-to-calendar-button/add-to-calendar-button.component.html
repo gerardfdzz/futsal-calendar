@@ -1,13 +1,33 @@
 <div class="add-to-calendar">
-  <a class="add-to-calendar__primary" [href]="webcalUrl()">
-    <span class="material-symbols-outlined" aria-hidden="true">event_available</span>
-    Afegir al calendari
-  </a>
-  <button type="button" class="add-to-calendar__secondary" (click)="copyUrl()">
-    {{ copied() ? 'URL copiada!' : 'Copiar URL' }}
-  </button>
+  @if (isApple) {
+    <a class="add-to-calendar__primary" [href]="webcalUrl()">
+      <span class="material-symbols-outlined" aria-hidden="true">event_available</span>
+      Afegir al calendari
+    </a>
+    <button type="button" class="add-to-calendar__secondary" (click)="copyUrl()">
+      {{ copied() ? 'URL copiada!' : 'Copiar URL' }}
+    </button>
+  } @else {
+    <button type="button" class="add-to-calendar__primary" (click)="copyUrl()">
+      <span class="material-symbols-outlined" aria-hidden="true">content_copy</span>
+      {{ copied() ? 'URL copiada!' : 'Copiar URL del calendari' }}
+    </button>
+    <a class="add-to-calendar__secondary" [href]="googleCalendarAddByUrlUrl" target="_blank" rel="noopener">
+      Obrir Google Calendar
+    </a>
+  }
+
   <p class="add-to-calendar__hint">
-    El calendari es manté sincronitzat automàticament amb la Federació. No podem garantir amb quina freqüència la
-    teva app de calendari torna a consultar-lo.
+    @if (isApple) {
+      El calendari es manté sincronitzat automàticament amb la Federació. No podem garantir amb quina freqüència la
+      teva app de calendari torna a consultar-lo.
+    } @else if (isAndroid) {
+      Android no permet subscriure's a un calendari amb un sol toc: copia la URL, obre Google Calendar amb el botó
+      de dalt i, a "Configuració" → "Altres calendaris" → "Des d'una URL", enganxa-la. Un cop afegit, es sincronitza
+      sol amb el mòbil — sense promesa de temps real.
+    } @else {
+      Copia la URL i enganxa-la al teu gestor de calendaris (Google Calendar, Outlook, Thunderbird...) a l'opció
+      "Afegir calendari des d'una URL" o "Subscriure's per URL".
+    }
   </p>
 </div>
