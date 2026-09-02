@@ -1,6 +1,6 @@
 import type { FederationProvider } from '../federation/federation-provider.js';
 import type { Match } from '../domain/match.js';
-import { filterTeamMatches } from '../matches/match-filter.js';
+import { getTeamMatches } from '../matches/team-matches.service.js';
 import { generateIcs } from './ics-generator.js';
 import type { GenerateIcsOptions } from './ics-config.js';
 import { computeMatchesContentHash } from './match-content-hash.js';
@@ -57,8 +57,7 @@ export async function buildTeamCalendar(
   const groupId = params.groupId.trim();
   const teamId = params.teamId.trim();
 
-  const allMatches = await provider.getMatches(groupId);
-  const teamMatches = filterTeamMatches(allMatches, teamId);
+  const teamMatches = await getTeamMatches(provider, groupId, teamId);
 
   const calendarName = params.calendarName ?? resolveCalendarName(teamMatches, teamId);
 
