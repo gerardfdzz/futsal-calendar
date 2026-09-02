@@ -1,8 +1,8 @@
-# futsal-calendar — Milestones 1, 2 y 3
+# futsal-calendar — Milestones 1-4
 
 Sincronización de partidos de fútbol sala de la FCF con calendarios suscritos (Apple Calendar / iCalendar RFC 5545).
 
-Estado: **Milestone 1 (FCF API → provider → mapper → `Match[]`), Milestone 2 (generador ICS) y Milestone 3 (endpoint HTTP, listo para Vercel) completas y con tests.** Todavía NO hay despliegue real ni prueba en un iPhone real contra una URL pública (Milestone 4), ni cache/persistencia (Milestone 5), ni Angular (Milestone 6).
+Estado: **Milestones 1 (FCF API → provider → mapper → `Match[]`), 2 (generador ICS), 3 (endpoint HTTP) y 4 (despliegue real en Vercel + suscripción `webcal://` confirmada en iPhone) completas.** Todavía NO hay cache/persistencia más allá del ETag actual (Milestone 5), ni Angular (Milestone 6).
 
 ## 0. Validado
 
@@ -10,7 +10,9 @@ Estado: **Milestone 1 (FCF API → provider → mapper → `Match[]`), Milestone
 - `npm run smoke:ics` (Milestone 2): genera el `.ics` real de un equipo y lo escribe en disco (`tmp-{teamId}.ics`). **Confirmado visualmente en un iPhone real** (Mail/Files Quick Look): fechas, horas y pabellones correctos, agrupados por día. Ver sección 5 sobre lo que aún no está resuelto (importarlo *dentro* de la app Calendar).
 - `npm run dev` (Milestone 3, nuevo): servidor HTTP local que monta el handler real. Verificado en este sandbox: `GET` válido → `200` con ICS + cabeceras correctas; `POST` → `405` con `Allow`; ruta mal formada → `400`; fallo de la FCF → `502` con `Cache-Control: no-store` (comprobado de verdad: este sandbox tampoco tiene acceso de red a `fcf.cat`, así que el propio error 403 de red se propaga correctamente como `502` — el camino de error está probado con un fallo real, no solo simulado).
 - `npm test` verificado en Windows (PowerShell/cmd) con una ruta de proyecto con espacio + guion (`OneDrive - Empresa\...`).
-- Despliegue en Vercel (Milestone 4, en curso): primer intento de deploy falló por invocar `npm run build` automáticamente sin `typescript` instalado (ver sección "Por qué el script se llama `typecheck` y no `build`" más abajo). Corregido renombrando el script; pendiente confirmar el redeploy.
+- **Despliegue real en Vercel (Milestone 4, completo)**: proyecto conectado a GitHub, dominio propio `partitsalcalendari.com` (comprado directamente en Vercel, así que sin configuración DNS manual — nameservers ya apuntaban a Vercel). Primer intento de deploy falló por invocar `npm run build` automáticamente sin `typescript` instalado (ver "Por qué el script se llama `typecheck` y no `build`" más abajo); corregido renombrando el script.
+- `GET https://partitsalcalendari.com/api/calendar/58162580/54755993.ics` verificado end-to-end contra la FCF real: 26 partidos de CFS LA SÉNIA, septiembre 2026 - mayo 2027, horarios/pabellón/`STATUS:CONFIRMED` correctos.
+- **`webcal://partitsalcalendari.com/api/calendar/58162580/54755993.ics` suscrito con éxito en un iPhone real** vía Safari — iOS reconoció el esquema `webcal://` y ofreció el diálogo nativo "Añadir suscripción de calendario". Esto es lo que Milestone 2 dejaba sin resolver (un `.ics` suelto por Mail no deja claro cómo *suscribirse*, solo importar una vez); con `webcal://` y una URL pública sí queda enlazado como suscripción real. Milestone 4 completa.
 
 ## 1. Arquitectura
 
@@ -135,7 +137,6 @@ La solución correcta no es marcar un override vacío de "Build Command" en el d
 
 ## 6. Lo que NO se ha hecho todavía (a propósito)
 
-- Despliegue real en Vercel + prueba end-to-end con una URL pública suscrita desde un iPhone real (Milestone 4).
 - Cache/cron/persistencia más allá del `Cache-Control` + ETag actuales, incluido el SEQUENCE real de la sección 3 (Milestone 5).
 - Angular (Milestone 6).
 - Base de datos: no se ha introducido nada.
@@ -148,7 +149,7 @@ De Milestones 1-2 (sin cambios, seguimos sin haber visto casos reales):
 1. Códigos de estado FCF más allá de `scheduled` (acabado/aplazado/suspendido/cancelado).
 2. Confirmar `isBye` contra un caso real de "Descans".
 3. Nombre legible del grupo ("TGN Gr. 14") — sigue sin fuente confirmada.
-4. Cómo importar de verdad un `.ics` suscrito en Apple Calendar desde iPhone sin pasar por un flujo confuso (Mail/Files no deja claro el botón "Añadir todos") — sigue sin resolver; lo retomamos con la URL real de Milestone 4, que es el escenario que de verdad importa (`webcal://`, no un archivo suelto por Mail).
+4. ~~Cómo importar de verdad un `.ics` suscrito en Apple Calendar desde iPhone~~ — resuelto en Milestone 4: `webcal://` con la URL pública real dispara el diálogo nativo "Añadir suscripción de calendario" en Safari/iOS, sin la confusión de Mail/Files de Milestone 2.
 
 Nuevas de Milestone 3-4:
 
