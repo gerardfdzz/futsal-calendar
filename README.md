@@ -9,8 +9,8 @@ Backend Node/TypeScript en funciones serverless de Vercel + frontend Angular 17 
 ## Cómo funciona
 
 1. El usuario elige disciplina → competició → grup → equip en el wizard de `/`.
-2. Eso lleva a `/equip/{groupId}/{teamId}`, con el calendario del equipo y un botón "Afegir al calendari" (`webcal://.../api/calendar/{groupId}/{teamId}.ics`).
-3. Apple Calendar (u otro cliente) se suscribe a esa URL. Cada vez que la vuelve a consultar, recibe el `.ics` generado en el momento a partir de los datos actuales de la FCF — no hay caché ni base de datos de por medio.
+2. Eso lleva a `/equip/{groupId}/{teamId}`, con el calendario del equipo y un botón de suscripción cuyo comportamiento depende del dispositivo (ver "Suscripción según plataforma" en Decisiones de diseño): en Apple abre `webcal://.../api/calendar/{groupId}/{teamId}.ics` directamente; en cualquier otro dispositivo copia la URL `https://` y guía al usuario a añadirla desde su gestor de calendario.
+3. El cliente de calendario (Apple Calendar, Google Calendar...) se suscribe a esa URL. Cada vez que la vuelve a consultar, recibe el `.ics` generado en el momento a partir de los datos actuales de la FCF — no hay caché ni base de datos de por medio.
 4. El `UID` de cada evento es estable (`fcf-{CODACTA}@partitsalcalendari.com`), así que un cambio de fecha/hora/pabellón actualiza el evento existente en vez de crear uno duplicado.
 
 No hay forma de forzar a un cliente de calendario a refrescar al instante — la app nunca promete sincronización instantánea, solo automática.
@@ -150,6 +150,10 @@ El script de backend que hace `tsc --noEmit` se llama `typecheck`, no `build` �
 **Selector en cascada en vez de búsqueda libre**: la búsqueda por nombre de club de la FCF (`/api/clubs/search`) está rota para Futbol Sala (no devuelve equipos), confirmado contra la API real. El wizard usa en su lugar el propio catálogo en cascada de la FCF (disciplina → competició → grup → equip), verificado end-to-end y con el mismo esquema para todas las disciplines.
 
 **Handlers HTTP framework-agnostic**: `handle*Request()` recibe y devuelve objetos planos (`{method, url, ...}` → `{status, headers, body}`), sin tipos de Vercel ni de `node:http`. Los adaptadores de `api/` y `scripts/dev-server.ts` son una traducción de ~20 líneas cada uno hacia su runtime concreto, lo que permite testear los handlers sin mockear ninguno de los dos.
+
+**Suscripción según plataforma**: la app de Google Calendar para Android no tiene forma de suscribirse a una URL directamente (confirmado — es una limitación conocida de la propia app, no algo que se pueda evitar desde el cliente), así que un botón único con enlace `webcal://` solo funciona de verdad en Apple. `AddToCalendarButtonComponent` detecta la plataforma por `navigator.userAgent`: en Apple (iOS/macOS) mantiene el enlace `webcal://` de un toque; en cualquier otro dispositivo, el botón principal pasa a ser "copiar URL" junto con un acceso directo a la pantalla de Google Calendar para añadir por URL y las instrucciones de ese flujo.
+
+**Sin escudos de equipo**: las URLs de escudo que devuelve la FCF (`ESCUDO_CASA`/`ESCUDO_FUERA`) no cargan de forma fiable, así que la interfaz solo muestra el nombre del equipo — sin imagen ni iniciales de repuesto.
 
 ## Lo que no se ha hecho a propósito
 
