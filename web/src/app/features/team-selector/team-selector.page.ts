@@ -1,7 +1,6 @@
 import { Component, inject, signal, computed } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { CompetitionCatalogService } from '../../core/services/competition-catalog.service';
-import { DEFAULT_DISCIPLINA_ID } from '../../core/config/catalog-defaults';
 import { SelectorStepListComponent, type SelectableOption } from '../../shared/selector-step-list/selector-step-list.component';
 import type { Competition, Discipline, Group, TeamOption } from '../../core/models/catalog.model';
 
@@ -12,9 +11,13 @@ type Step = 'discipline' | 'competition' | 'group' | 'team';
  * (disciplina -> competició -> grup -> equip) built on the FCF's own
  * catalog endpoints, verified live to be reliable for every discipline —
  * unlike free-text search by club name, which testing showed is broken
- * for Futbol Sala specifically (see project notes). "Futbol Sala" is
- * preselected once `/api/disciplines` loads, but every step stays
- * changeable.
+ * for Futbol Sala specifically (see project notes).
+ *
+ * Every step, including the discipline itself, starts unselected — the
+ * user always sees and picks the discipline first, nothing is
+ * auto-selected on load (see project notes: an earlier version
+ * preselected Futbol Sala, which meant the first screen never actually
+ * showed).
  *
  * The current selection is mirrored into the URL's query params
  * (`disciplinaId`/`competicioId`/`grupId`) so the browser's back button
@@ -71,7 +74,7 @@ export class TeamSelectorPage {
     const competicioId = params.get('competicioId') ?? undefined;
     const grupId = params.get('grupId') ?? undefined;
 
-    this.loadDisciplines(disciplinaId);
+    this.loadDisciplines();
     if (disciplinaId) {
       this.selectDiscipline(disciplinaId, { updateUrl: false });
     }
@@ -179,21 +182,12 @@ export class TeamSelectorPage {
     }
   }
 
-  private loadDisciplines(preselectedDisciplinaId: string | undefined): void {
+  private loadDisciplines(): void {
     this.loading.set(true);
     this.catalog.listDisciplines().subscribe({
       next: (disciplines) => {
         this.disciplines.set(disciplines);
         this.loading.set(false);
-
-        // Preselect Futbol Sala only when nothing came from the URL —
-        // a shared link with its own disciplinaId must win.
-        if (!preselectedDisciplinaId) {
-          const futsal = disciplines.find((d) => d.id === DEFAULT_DISCIPLINA_ID);
-          if (futsal) {
-            this.selectDiscipline(futsal.id, { updateUrl: false });
-          }
-        }
       },
       error: () => {
         this.loading.set(false);
