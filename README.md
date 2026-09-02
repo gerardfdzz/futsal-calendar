@@ -2,7 +2,7 @@
 
 Sincronización de partidos de fútbol sala de la FCF con calendarios suscritos (Apple Calendar / iCalendar RFC 5545).
 
-Estado: **Milestones 1 (FCF API → provider → mapper → `Match[]`), 2 (generador ICS), 3 (endpoint HTTP), 4 (despliegue real en Vercel + suscripción `webcal://` confirmada en iPhone), 5 (análisis de cache/actualización, decisión documentada: sin cambios de infraestructura por ahora) y 6 (backend de catálogo FCF + UI Angular 17) completas.** Ver sección 11 para el detalle de Milestone 6, incluyendo una limitación importante de verificación que necesita tu confirmación.
+Estado: **Milestones 1 (FCF API → provider → mapper → `Match[]`), 2 (generador ICS), 3 (endpoint HTTP), 4 (despliegue real en Vercel + suscripción `webcal://` confirmada en iPhone), 5 (análisis de cache/actualización, decisión documentada: sin cambios de infraestructura por ahora) y 6 (backend de catálogo FCF + UI Angular 17, build confirmado por ti en local) completas.** Ver sección 11 para el detalle de Milestone 6.
 
 ## 0. Validado
 
@@ -154,7 +154,7 @@ La solución correcta no es marcar un override vacío de "Build Command" en el d
 
 - Cache/cron/persistencia más allá del `Cache-Control` + ETag actuales — decisión explícita en Milestone 5 (sección 5) de no implementarlo todavía, no un olvido.
 - Base de datos: no se ha introducido nada.
-- **Verificación de compilación de la app Angular (`web/`)** — ver sección 11.2, es la limitación más importante abierta ahora mismo.
+- Probar de verdad el flujo del wizard + calendario de equipo contra el backend real corriendo en local (proxy recién añadido — ver sección 11.4) y, después, contra un despliegue real de Vercel.
 - Decidir si "0 partidos para este equipo" debería ser `404` en vez de `200` con calendario vacío — de momento es `200` a propósito (ver 4.2); es una decisión de producto, no técnica, y prefiero que la tomes tú viendo el comportamiento real.
 
 ## 8. Preguntas abiertas
@@ -206,21 +206,24 @@ Standalone components, signals, control-flow `@if/@for/@switch`, esbuild `applic
 
 Estilos: tokens de `DESIGN.md` ("Llum Esportiva") traducidos a variables CSS en `web/src/styles/_tokens.scss`, sin Tailwind (el stack del brief pide SCSS explícitamente).
 
-### 11.4 Limitación importante: no se ha podido verificar que la app compile
+### 11.4 Verificación de compilación (resuelta) y cómo ejecutar el frontend en local
 
-`registry.npmjs.org` devuelve `403 Forbidden` para **cualquier** petición (`npm install`, `npm view`, `npx`), tanto desde este sandbox como desde el puente a tu equipo — confirmado con pruebas directas (`curl`, `npm view is-odd`), y no es un bloqueo de proxy/red (ese registro está explícitamente permitido en la lista de salida; el `403` viene del propio `npmjs.org`, probablemente rate-limiting sobre una IP de salida compartida en la nube). Esto impide ejecutar `ng new`, `npm install` o `ng build` en ambos entornos disponibles ahora mismo.
+`registry.npmjs.org` devolvía `403 Forbidden` en todo este sandbox (y en el puente a tu equipo), así que todo `web/` se escribió a mano sin poder compilarlo. **Confirmado por ti**: `npm install` + `ng serve` sí funcionan en tu terminal real y el build compila a la primera (`Application bundle generation complete`) — el bloqueo era específico de este sandbox, no un problema del código.
 
-Por eso todo el código de `web/` se ha escrito a mano, sin poder compilarlo ni verificarlo con el compilador real de Angular — solo razonado con cuidado contra la API conocida de Angular 17 (signals, standalone components, sintaxis de control de flujo, convenciones del builder `application`).
+Lo que sí hacía falta y no estaba: al abrir `http://localhost:4200/` con solo `npm start` en `web/`, la app carga pero falla con "No s'ha pogut carregar la llista de disciplines" — porque `ng serve` sirve solo el frontend, y `/api/*` no existe en el puerto 4200 (esas rutas las sirve el backend, `scripts/dev-server.ts`, normalmente en el 3000). Añadido `web/proxy.conf.json` + `proxyConfig` en `angular.json` para que `ng serve` reenvíe `/api/*` al backend local.
 
-**Antes de dar por buena esta milestone, necesito que ejecutes esto en tu terminal real** (no hace falta que sea a través de mí):
+Para probar la app completa en local hacen falta **dos terminales**:
 
 ```bash
+# Terminal 1 — backend (raíz del repo), puerto 3000
+npm run dev
+
+# Terminal 2 — frontend (web/), puerto 4200, con proxy de /api hacia el 3000
 cd web
-npm install
-npm run build
+npm start
 ```
 
-y me pases cualquier error de compilación que salga — son casi con toda seguridad detalles menores (una importación, un tipo) fáciles de corregir una vez los vea.
+y abrir `http://localhost:4200/`. (Esto solo hace falta para desarrollo local — en Vercel, frontend y funciones `api/` conviven bajo el mismo dominio, así que las rutas relativas `/api/*` funcionan directamente sin proxy alguno.)
 
 ### 11.5 Despliegue: `vercel.json` (nuevo)
 
