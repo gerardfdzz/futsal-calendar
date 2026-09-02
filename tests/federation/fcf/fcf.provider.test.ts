@@ -99,7 +99,7 @@ test('getMatches: gives up after exhausting retries on persistent HTTP 5xx', asy
   const provider = new FcfFederationProvider({ fetchFn, maxRetries: 2, retryDelayMs: 1, logger: noopFcfLogger });
 
   await assert.rejects(() => provider.getMatches('58162580'), FcfProviderError);
-  assert.equal(calls, 3); // initial attempt + 2 retries
+  assert.equal(calls, 3);
 });
 
 test('getMatches: does NOT retry on HTTP 4xx (treated as a non-transient contract error)', async () => {

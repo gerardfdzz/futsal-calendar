@@ -6,13 +6,6 @@ import { NextMatchHeroComponent } from './next-match-hero/next-match-hero.compon
 import { MatchListItemComponent } from './match-list-item/match-list-item.component';
 import { AddToCalendarButtonComponent } from '../../shared/add-to-calendar-button/add-to-calendar-button.component';
 
-/**
- * `/equip/:groupId/:teamId` — a single team's upcoming fixtures plus the
- * subscribe/copy-URL controls. `groupId`/`teamId` are read once from the
- * route snapshot rather than reactively, since this page is always
- * reached via a fresh navigation, never by changing route params on an
- * already-open instance.
- */
 @Component({
   selector: 'app-team-calendar-page',
   standalone: true,
@@ -31,9 +24,6 @@ export class TeamCalendarPage {
   readonly loading = signal(true);
   readonly error = signal<string | undefined>(undefined);
 
-  /** There's no team-name endpoint of its own — every match already
-   *  carries this team's name as either `homeTeam` or `awayTeam`, so the
-   *  header is derived from whichever match happens to load first. */
   readonly teamName = computed(() => this.pickOurTeam()?.name);
 
   readonly upcomingMatches = computed(() => {

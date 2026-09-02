@@ -4,10 +4,6 @@ import { mapFcfMatch } from '../../src/federation/fcf/fcf.mapper.js';
 import { generateIcs } from '../../src/calendar/ics-generator.js';
 import { buildFcfMatchDto } from '../fixtures/fcf.fixtures.js';
 
-/**
- * End-to-end sanity check: real FCF DTO shape -> domain Match -> ICS
- * text. Nothing else in the test suite exercises both layers together.
- */
 test('FCF DTO -> mapFcfMatch -> generateIcs produces the expected UID and local kickoff time', () => {
   const dto = buildFcfMatchDto({
     CODACTA: '4151650',

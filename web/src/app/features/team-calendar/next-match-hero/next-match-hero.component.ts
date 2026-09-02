@@ -3,11 +3,6 @@ import type { Match } from '../../../core/models/match.model';
 import { formatMatchDay, formatMatchTime } from '../../../core/utils/date-format';
 import { StatusBadgeComponent } from '../../../shared/status-badge/status-badge.component';
 
-/**
- * The featured card for the team's next fixture. `teamId` decides which
- * side gets the bold/highlighted treatment; it isn't assumed to always be
- * the home team.
- */
 @Component({
   selector: 'app-next-match-hero',
   standalone: true,

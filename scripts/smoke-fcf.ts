@@ -1,12 +1,3 @@
-/**
- * Manual smoke test against the REAL FCF endpoint — not part of the test
- * suite (no network calls in `npm test`), just a way to eyeball real data.
- *
- * Usage:
- *   npx tsx scripts/smoke-fcf.ts [groupId]
- *
- * Defaults to "TGN Gr. 14" (58162580).
- */
 import { FcfFederationProvider } from '../src/federation/fcf/fcf.provider.js';
 import { filterTeamMatches } from '../src/matches/match-filter.js';
 

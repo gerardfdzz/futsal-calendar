@@ -1,9 +1,3 @@
-/**
- * Mirrors the backend's `Match`/`TeamRef`/`Venue`/`MatchStatus` shapes.
- * `startsAt` is a `string`, not a `Date`: `HttpClient` never revives JSON
- * dates automatically, so components construct `new Date(startsAt)`
- * where needed.
- */
 export type MatchStatus = 'scheduled' | 'finished' | 'postponed' | 'cancelled' | 'unknown';
 
 export interface TeamRef {

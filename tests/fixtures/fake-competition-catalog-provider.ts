@@ -1,8 +1,6 @@
 import type { Competition, Discipline, Group, TeamOption } from '../../src/domain/competition-catalog.js';
 import type { CompetitionCatalogProvider } from '../../src/federation/competition-catalog-provider.js';
 
-/** In-memory `CompetitionCatalogProvider` test double, mirroring
- *  `FakeFederationProvider`'s shape. */
 export class FakeCompetitionCatalogProvider implements CompetitionCatalogProvider {
   public calledWith: { method: string; args: string[] }[] = [];
 

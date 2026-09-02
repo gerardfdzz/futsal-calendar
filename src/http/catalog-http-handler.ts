@@ -10,11 +10,6 @@ import { consoleHttpLogger, type HttpLogger } from './http-logger.js';
 
 const ALLOWED_METHODS = ['GET', 'HEAD'];
 
-/** The catalog (disciplines/competicions/grups/equips) barely changes
- *  within a season, and unlike the calendar endpoint there's no
- *  per-subscriber caching client to keep honest with ETag/304 — the only
- *  consumer is our own Angular frontend — so a plain, longer max-age is
- *  enough here. */
 const CATALOG_CACHE_MAX_AGE_SECONDS = 60 * 60;
 
 export interface JsonHttpRequest {
@@ -28,7 +23,6 @@ export interface JsonHttpResponse {
   readonly body: string;
 }
 
-/** `GET /api/disciplines` */
 export async function handleDisciplinesRequest(
   catalog: CompetitionCatalogProvider,
   request: JsonHttpRequest,
@@ -44,8 +38,6 @@ export async function handleDisciplinesRequest(
   }
 }
 
-/** `GET /api/competitions?disciplinaId=&temporada=` (both optional, default
- *  to Futbol Sala / the current season). */
 export async function handleCompetitionsRequest(
   catalog: CompetitionCatalogProvider,
   request: JsonHttpRequest,
@@ -65,7 +57,6 @@ export async function handleCompetitionsRequest(
   }
 }
 
-/** `GET /api/competitions/{competicioId}/groups` */
 export async function handleGroupsRequest(
   catalog: CompetitionCatalogProvider,
   request: JsonHttpRequest,
@@ -88,7 +79,6 @@ export async function handleGroupsRequest(
   }
 }
 
-/** `GET /api/groups/{grupId}/teams` */
 export async function handleTeamsRequest(
   catalog: CompetitionCatalogProvider,
   request: JsonHttpRequest,

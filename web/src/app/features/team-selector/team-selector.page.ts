@@ -6,16 +6,6 @@ import type { Competition, Discipline, Group, TeamOption } from '../../core/mode
 
 type Step = 'discipline' | 'competition' | 'group' | 'team';
 
-/**
- * A cascading selector (disciplina -> competició -> grup -> equip) built
- * on the FCF's own catalog endpoints. Every step, including the
- * discipline itself, starts unselected.
- *
- * The current selection is mirrored into the URL's query params
- * (`disciplinaId`/`competicioId`/`grupId`) so the browser's back button
- * steps back through the wizard and a mid-selection link is shareable —
- * see `syncUrl`.
- */
 @Component({
   selector: 'app-team-selector-page',
   standalone: true,

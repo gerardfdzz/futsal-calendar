@@ -1,10 +1,3 @@
-/**
- * Route/query parsing for the JSON endpoints, following the same
- * rationale as `calendar-route.ts`: parse straight from the raw request
- * URL rather than relying on Vercel's own query/route-param injection, so
- * behavior is identical whether a request came through Vercel or through
- * `scripts/dev-server.ts`.
- */
 export class InvalidRouteError extends Error {
   constructor(message: string) {
     super(message);
@@ -12,8 +5,6 @@ export class InvalidRouteError extends Error {
   }
 }
 
-/** `?disciplinaId=&temporada=` off `/api/competitions` — both optional;
- *  defaults are the handler's job, not this parser's. */
 export function parseCompetitionsQuery(rawUrl: string): { disciplinaId?: string; temporada?: string } {
   const url = toUrl(rawUrl);
   const disciplinaId = url.searchParams.get('disciplinaId');
@@ -24,7 +15,6 @@ export function parseCompetitionsQuery(rawUrl: string): { disciplinaId?: string;
   };
 }
 
-/** `{competicioId}` out of `/api/competitions/{competicioId}/groups`. */
 export function parseGroupsRoute(rawUrl: string): { competicioId: string } {
   const segments = pathSegments(rawUrl);
   const index = segments.indexOf('competitions');
@@ -38,7 +28,6 @@ export function parseGroupsRoute(rawUrl: string): { competicioId: string } {
   return { competicioId };
 }
 
-/** `{grupId}` out of `/api/groups/{grupId}/teams`. */
 export function parseTeamsRoute(rawUrl: string): { grupId: string } {
   const segments = pathSegments(rawUrl);
   const index = segments.indexOf('groups');
@@ -52,7 +41,6 @@ export function parseTeamsRoute(rawUrl: string): { grupId: string } {
   return { grupId };
 }
 
-/** `{groupId}/{teamId}` out of `/api/matches/{groupId}/{teamId}`. */
 export function parseMatchesRoute(rawUrl: string): { groupId: string; teamId: string } {
   const segments = pathSegments(rawUrl);
   const index = segments.indexOf('matches');
@@ -69,8 +57,6 @@ export function parseMatchesRoute(rawUrl: string): { groupId: string; teamId: st
 
 function toUrl(rawUrl: string): URL {
   try {
-    // Base URL is arbitrary/unused — `rawUrl` is always a path, `URL`
-    // just requires a base to parse a relative one.
     return new URL(rawUrl, 'http://localhost');
   } catch {
     throw new InvalidRouteError(`Could not parse request URL: "${rawUrl}"`);

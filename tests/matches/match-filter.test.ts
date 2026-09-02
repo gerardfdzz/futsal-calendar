@@ -24,8 +24,6 @@ test('filterTeamMatches: excludes matches the team is not part of', () => {
 });
 
 test('filterTeamMatches: two teams with similar names in the same group are never confused', () => {
-  // CFS LA SÉNIA (54755993) vs AES LA SÉNIA-STOCKPLUS (50795143): fixtures
-  // for one must never leak into the other's calendar.
   const cfsHome = buildMatch({
     id: 'm-cfs',
     homeTeam: { id: '54755993', name: 'CFS LA SÉNIA' },

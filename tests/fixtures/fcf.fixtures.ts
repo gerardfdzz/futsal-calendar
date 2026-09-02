@@ -1,10 +1,5 @@
 import type { FcfMatchDto } from '../../src/federation/fcf/fcf.types.js';
 
-/**
- * Base fixture modeled on real data: group 58162580 ("TGN Gr. 14"), CFS
- * LA SÉNIA (54755993) vs a plausible opponent, CODACTA 4151650, kickoff
- * 2026-09-26 18:30:00 Europe/Madrid.
- */
 export function buildFcfMatchDto(overrides: Partial<FcfMatchDto> = {}): FcfMatchDto {
   return {
     CODGRUPO: '58162580',

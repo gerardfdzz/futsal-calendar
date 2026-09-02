@@ -1,21 +1,10 @@
-/**
- * Manual smoke test: fetches real matches for a team from the FCF,
- * generates the actual `.ics` file, writes it locally, and prints a
- * short summary — so you can open the file in a calendar app or ICS
- * validator and eyeball it.
- *
- * Usage:
- *   npx tsx scripts/smoke-ics.ts [groupId] [teamId]
- *
- * Defaults to CFS LA SÉNIA in group 58162580.
- */
 import { writeFileSync } from 'node:fs';
 import { FcfFederationProvider } from '../src/federation/fcf/fcf.provider.js';
 import { filterTeamMatches } from '../src/matches/match-filter.js';
 import { generateIcs } from '../src/calendar/ics-generator.js';
 
 const GROUP_ID = process.argv[2] ?? '58162580';
-const TEAM_ID = process.argv[3] ?? '54755993'; // CFS LA SÉNIA
+const TEAM_ID = process.argv[3] ?? '54755993';
 
 async function main(): Promise<void> {
   console.log(`Fetching matches for groupId=${GROUP_ID}, teamId=${TEAM_ID}...\n`);

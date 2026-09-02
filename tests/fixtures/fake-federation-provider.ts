@@ -1,12 +1,6 @@
 import type { Match } from '../../src/domain/match.js';
 import type { FederationProvider } from '../../src/federation/federation-provider.js';
 
-/**
- * In-memory `FederationProvider` test double. Lets `calendar.service`
- * tests (and any future HTTP-handler tests) exercise the orchestration
- * logic without touching the real FCF or `FcfFederationProvider` at all
- * — exactly the decoupling the `FederationProvider` port exists for.
- */
 export class FakeFederationProvider implements FederationProvider {
   public calledWithGroupIds: string[] = [];
 

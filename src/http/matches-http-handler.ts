@@ -5,8 +5,6 @@ import { InvalidRouteError, parseMatchesRoute } from './catalog-route.js';
 import { consoleHttpLogger, type HttpLogger } from './http-logger.js';
 
 const ALLOWED_METHODS = ['GET', 'HEAD'];
-/** Same freshness bound as the `.ics` endpoint — this is the same
- *  underlying data at the same volatility, just a different format. */
 const MATCHES_CACHE_MAX_AGE_SECONDS = 30 * 60;
 
 export interface TeamMatchesHttpRequest {
@@ -21,13 +19,6 @@ export interface TeamMatchesHttpResponse {
   readonly body: string;
 }
 
-/**
- * `GET /api/matches/{groupId}/{teamId}` — the same
- * `FederationProvider.getMatches -> filterTeamMatches` pipeline
- * `buildTeamCalendar` uses (via the shared `getTeamMatches` helper), but
- * returned as plain JSON instead of an ICS body, for clients that need
- * structured match data rather than a `.ics` file to parse.
- */
 export async function handleTeamMatchesRequest(
   provider: FederationProvider,
   request: TeamMatchesHttpRequest,
@@ -68,11 +59,6 @@ export async function handleTeamMatchesRequest(
     };
   }
 
-  // Reused as-is from the ICS pipeline: it hashes normalized match
-  // content, nothing ICS-specific. The second argument is just a
-  // discriminator string (`calendarName` there, `groupId:teamId` here)
-  // so two different teams' identical-looking empty match lists can't
-  // collide on the same ETag.
   const etag = computeMatchesContentHash(matches, `${groupId}:${teamId}`);
 
   const sharedHeaders: Record<string, string> = {

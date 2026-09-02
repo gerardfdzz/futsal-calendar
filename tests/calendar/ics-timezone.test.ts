@@ -14,8 +14,6 @@ test('formatMadridLocalDateTime: renders CET (winter) kickoff correctly', () => 
 });
 
 test('formatMadridLocalDateTime: round-trips with parseFcfDate (the inverse conversion)', () => {
-  // parseFcfDate("2026-09-26 18:30:00") -> instant; formatting that same
-  // instant back must reproduce the original wall-clock components.
   const raw = '2026-09-26 18:30:00';
   const instant = parseFcfDate(raw);
   assert.equal(formatMadridLocalDateTime(instant), '20260926T183000');

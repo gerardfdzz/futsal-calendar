@@ -1,11 +1,4 @@
-/**
- * Design tokens kept as plain CSS custom properties rather than SCSS
- * variables so component styles can reference them without an `@use`
- * import in every file, and so a future theming need wouldn't require
- * recompiling anything. Ships a single palette — no dark variant.
- */
 :root {
-  // Colors — Material-3-style token names.
   --color-primary: #506600;
   --color-on-primary: #ffffff;
   --color-primary-container: #ccff00;
@@ -27,11 +20,9 @@
   --color-error: #ba1a1a;
   --color-error-container: #ffdad6;
 
-  // Buttons/cards/inputs use a simpler, slightly different hex set than
-  // the Material-3 token block above — reproduced verbatim, not reconciled.
   --color-button-primary-bg: #ccff00;
   --color-button-primary-text: #111827;
-  --color-button-primary-bg-pressed: #b8e600; // ~10% darker
+  --color-button-primary-bg-pressed: #b8e600;
   --color-border: #e5e7eb;
   --color-card-bg: #f3f4f6;
   --color-input-bg: #f9fafb;
@@ -54,7 +45,6 @@
   --radius-xl: 1.5rem;
   --radius-full: 9999px;
 
-  // Spacing — 8px grid, plus a 20px container margin.
   --space-base: 4px;
   --space-xs: 8px;
   --space-sm: 12px;

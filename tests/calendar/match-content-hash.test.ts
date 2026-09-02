@@ -48,9 +48,6 @@ test('changes when calendar name changes, even with identical matches', () => {
 });
 
 test('does not depend on any "now"/generation-time input (no such parameter exists)', () => {
-  // Regression guard for the whole reason this module exists: unlike
-  // generateIcs's DTSTAMP/LAST-MODIFIED, calling this twice a second
-  // apart for the same data must produce the same hash.
   const matches = [buildMatch()];
   const hashA = computeMatchesContentHash(matches, 'x');
   const hashB = computeMatchesContentHash(matches, 'x');

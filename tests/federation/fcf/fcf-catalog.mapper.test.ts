@@ -21,7 +21,7 @@ test('dedupeAndSortById: collapses repeated ids, keeping the first-seen name', (
   assert.equal(result.length, 2);
   const byId = new Map(result.map((item) => [item.id, item.name]));
   assert.equal(byId.get('1'), 'CFS LA SÉNIA');
-  assert.equal(byId.get('2'), 'AES LA SÉNIA-STOCKPLUS'); // first-seen spelling, not the repeated one
+  assert.equal(byId.get('2'), 'AES LA SÉNIA-STOCKPLUS');
 });
 
 test('dedupeAndSortById: sorts the deduplicated result by name', () => {

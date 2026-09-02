@@ -15,7 +15,6 @@ export class FcfProviderError extends Error {
 type FetchLike = (input: string, init: RequestInit) => Promise<Response>;
 
 export interface FcfFederationProviderOptions {
-  /** Injectable for tests; defaults to the global `fetch`. */
   readonly fetchFn?: FetchLike;
   readonly baseUrl?: string;
   readonly timeoutMs?: number;
@@ -30,22 +29,11 @@ const DEFAULT_TIMEOUT_MS = 8_000;
 const DEFAULT_MAX_RETRIES = 2;
 const DEFAULT_RETRY_DELAY_MS = 300;
 
-/** Identifies this app to the FCF and gives them a way to reach us. Reads
- *  `FCF_USER_AGENT_CONTACT` (e.g. an email) so it's set per-deployment
- *  without a code change. */
 function buildDefaultUserAgent(): string {
   const contact = process.env['FCF_USER_AGENT_CONTACT'];
   return contact ? `futsal-calendar-sync/0.1 (+contact: ${contact})` : 'futsal-calendar-sync/0.1';
 }
 
-/**
- * `FederationProvider` backed by the FCF's `partidos` JSON endpoint.
- *
- * This is the ONLY place in the codebase allowed to know about
- * `https://www.fcf.cat`, `FcfMatchDto`, jornada grouping, or FCF status
- * codes. Everything it returns is already-mapped, bye-free, domain
- * `Match[]`.
- */
 export class FcfFederationProvider implements FederationProvider {
   private readonly fetchFn: FetchLike;
   private readonly baseUrl: string;

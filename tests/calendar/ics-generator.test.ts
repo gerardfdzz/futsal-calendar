@@ -3,10 +3,6 @@ import assert from 'node:assert/strict';
 import { generateIcs } from '../../src/calendar/ics-generator.js';
 import { buildMatch } from '../fixtures/match.fixtures.js';
 
-/** Reassembles folded content lines (CRLF + leading space) back into one
- *  logical line per property, the way a real ICS parser would — makes
- *  assertions below independent of exactly where a fold happened to
- *  land. */
 function unfoldIcs(ics: string): string[] {
   const physicalLines = ics.split('\r\n').filter((line) => line !== '');
   const logicalLines: string[] = [];
@@ -45,8 +41,6 @@ test('generateIcs: produces a well-formed VCALENDAR envelope', () => {
 test('generateIcs: uses CRLF line endings, not bare \\n (RFC 5545 §3.1)', () => {
   const ics = generateIcs([buildMatch()], { calendarName: 'CFS LA SÉNIA', now: FIXED_NOW });
   assert.ok(ics.includes('\r\n'));
-  // No line-feed-without-carriage-return survives outside escaped `\n`
-  // sequences inside a TEXT value.
   const withoutCrlf = ics.replace(/\r\n/g, '');
   assert.ok(!withoutCrlf.includes('\n'));
 });
@@ -56,14 +50,14 @@ test('generateIcs: builds a VEVENT with UID, DTSTART/DTEND in Europe/Madrid, and
     id: '4151650',
     homeTeam: { id: '54755993', name: 'CFS LA SÉNIA' },
     awayTeam: { id: '12345678', name: "L'AMETLLA" },
-    startsAt: new Date('2026-09-26T16:30:00.000Z'), // 18:30 Europe/Madrid (CEST)
+    startsAt: new Date('2026-09-26T16:30:00.000Z'),
   });
   const ics = generateIcs([match], { calendarName: 'CFS LA SÉNIA', now: FIXED_NOW });
   const lines = unfoldIcs(ics);
 
   assert.ok(lines.includes('UID:fcf-4151650@partitsalcalendari.com'));
   assert.ok(lines.includes('DTSTART;TZID=Europe/Madrid:20260926T183000'));
-  assert.ok(lines.includes('DTEND;TZID=Europe/Madrid:20260926T200000')); // +90 min
+  assert.ok(lines.includes('DTEND;TZID=Europe/Madrid:20260926T200000'));
   assert.ok(lines.includes("SUMMARY:CFS LA SÉNIA - L'AMETLLA"));
 });
 
@@ -142,11 +136,9 @@ test('generateIcs: folds a VEVENT line built from an unusually long team/venue n
   });
   const ics = generateIcs([match], { calendarName: 'X', now: FIXED_NOW });
 
-  // Raw (folded) output must contain a continuation line.
   const rawLines = ics.split('\r\n');
   assert.ok(rawLines.some((line) => line.startsWith(' ')), 'expected at least one folded continuation line');
 
-  // But once unfolded, the SUMMARY is still exactly what we expect.
   const lines = unfoldIcs(ics);
   assert.ok(findLine(lines, 'SUMMARY:')?.includes(longName));
 });
@@ -171,7 +163,7 @@ test('generateIcs: matchDurationMinutes is configurable and drives DTEND', () =>
     generateIcs([match], { calendarName: 'X', now: FIXED_NOW, matchDurationMinutes: 60 }),
   );
 
-  assert.ok(lines.includes('DTEND;TZID=Europe/Madrid:20260926T193000')); // 18:30 + 60min
+  assert.ok(lines.includes('DTEND;TZID=Europe/Madrid:20260926T193000'));
 });
 
 test('generateIcs: uidDomain and prodId are configurable', () => {

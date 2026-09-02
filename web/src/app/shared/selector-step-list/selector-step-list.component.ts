@@ -5,11 +5,6 @@ export interface SelectableOption {
   readonly name: string;
 }
 
-/**
- * Reusable card-list used by every step of the team-selector wizard
- * (disciplina / competició / grup / equip), instead of building four
- * near-identical lists.
- */
 @Component({
   selector: 'app-selector-step-list',
   standalone: true,

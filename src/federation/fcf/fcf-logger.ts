@@ -1,10 +1,3 @@
-/**
- * Minimal logging port used across the `federation/fcf` layer. Deliberately
- * tiny (no levels beyond what we actually call, no structured-logging
- * framework) — inject a real logger (pino, Vercel's own logging, etc.) by
- * implementing this interface; tests inject a spy/no-op instead of
- * mocking `console`.
- */
 export interface FcfLogger {
   info(message: string, context?: Record<string, unknown>): void;
   warn(message: string, context?: Record<string, unknown>): void;

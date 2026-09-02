@@ -3,11 +3,6 @@ import { Injectable, inject } from '@angular/core';
 import type { Observable } from 'rxjs';
 import type { Competition, Discipline, Group, TeamOption } from '../models/catalog.model';
 
-/**
- * Thin wrapper around the backend's catalog-browsing endpoints. Uses
- * same-origin relative URLs since this app is deployed alongside the
- * Vercel functions, so no base URL configuration is needed.
- */
 @Injectable({ providedIn: 'root' })
 export class CompetitionCatalogService {
   private readonly http = inject(HttpClient);
@@ -16,8 +11,6 @@ export class CompetitionCatalogService {
     return this.http.get<Discipline[]>('/api/disciplines');
   }
 
-  /** `temporada` is optional — the backend defaults to the current
-   *  season when omitted. */
   listCompetitions(disciplinaId: string, temporada?: string): Observable<Competition[]> {
     const params: Record<string, string> = { disciplinaId };
     if (temporada) {

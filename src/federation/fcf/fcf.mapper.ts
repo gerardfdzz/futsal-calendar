@@ -13,17 +13,6 @@ export class FcfMappingError extends Error {
   }
 }
 
-/**
- * Maps one raw FCF match into our domain `Match`.
- *
- * `round` is taken from the jornada group key the DTO was found under, not
- * from `dto.JORNADA` (see `fcf.provider.ts`); a mismatch is logged but the
- * group key wins.
- *
- * Throws `FcfMappingError` only for genuinely unrecoverable input (an
- * unparsable `COMIENZO1`) — everything else has a well-defined, tested
- * fallback and never throws.
- */
 export function mapFcfMatch(dto: FcfMatchDto, round: number, logger: FcfLogger = noopFcfLogger): Match {
   if (dto.JORNADA.trim() !== '' && Number(dto.JORNADA) !== round) {
     logger.warn('dto.JORNADA does not match the jornada group key it was found under; trusting the group key', {
@@ -82,8 +71,6 @@ function mapVenue(
 ): Venue | undefined {
   const name = rawName.trim();
   if (name === '') {
-    // No venue name -> no Venue at all (a Venue without a name isn't a
-    // useful LOCATION for the ICS event), discarding any coordinates too.
     return undefined;
   }
 

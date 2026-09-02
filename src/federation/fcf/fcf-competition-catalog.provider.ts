@@ -17,15 +17,6 @@ export interface FcfCompetitionCatalogProviderOptions extends FcfHttpClientOptio
   readonly baseUrl?: string;
 }
 
-/**
- * `CompetitionCatalogProvider` backed by the FCF `competition/*` family
- * of endpoints the site's own selector uses
- * (`disciplines`/`competicions`/`grupos`/`equipos`).
- *
- * Like `FcfFederationProvider`, this is the ONLY place in the codebase
- * allowed to know these endpoint paths or the raw `{value, label}` shape
- * they return.
- */
 export class FcfCompetitionCatalogProvider implements CompetitionCatalogProvider {
   private readonly http: FcfHttpClient;
   private readonly baseUrl: string;

@@ -9,38 +9,18 @@ export interface BuildTeamCalendarParams {
   readonly groupId: string;
   readonly teamId: string;
 
-  /** Overrides the resolved `X-WR-CALNAME`. Normally left unset — see
-   *  `resolveCalendarName` for how it's derived from the matches
-   *  themselves when omitted. */
   readonly calendarName?: string;
 
-  /** Passed through to `generateIcs` verbatim (duration, prodId,
-   *  uidDomain, injectable `now`). `calendarName` lives on this params
-   *  object instead, since it may need to be resolved here rather than
-   *  supplied by the caller. */
   readonly icsOptions?: Omit<GenerateIcsOptions, 'calendarName'>;
 }
 
 export interface TeamCalendarResult {
   readonly ics: string;
-  /** RFC 7232-quoted content hash, stable across requests as long as no
-   *  match's relevant data actually changed — see
-   *  `match-content-hash.ts`. Safe to use directly as an HTTP `ETag`. */
   readonly etag: string;
   readonly matchCount: number;
   readonly calendarName: string;
 }
 
-/**
- * Orchestrates `FederationProvider.getMatches(groupId)` -> `filterTeamMatches(teamId)`
- * -> `generateIcs(...)`. Has no knowledge of HTTP or Vercel, so it stays
- * trivially testable with a fake `FederationProvider`.
- *
- * Deliberately does NOT throw or special-case an empty result: a team with
- * zero matches still produces a valid, empty `VCALENDAR`. `matchCount` is
- * returned so the HTTP layer can decide for itself whether "0 matches"
- * means `200` with an empty calendar or `404`.
- */
 export async function buildTeamCalendar(
   provider: FederationProvider,
   params: BuildTeamCalendarParams,
@@ -58,16 +38,6 @@ export async function buildTeamCalendar(
   return { ics, etag, matchCount: teamMatches.length, calendarName };
 }
 
-/**
- * The FCF never sends us a standalone "team name" endpoint — the only
- * place a team's display name appears is inside its own matches
- * (`NOMBRE_CASA`/`NOMBRE_FUERA`). So the first match's own team name is
- * the only honest source for `X-WR-CALNAME` we have.
- *
- * When there are no matches at all, we can't know the team's real name,
- * so we fall back to a plain, honest placeholder built from the id
- * rather than guessing or leaving the calendar unnamed.
- */
 function resolveCalendarName(matches: readonly Match[], teamId: string): string {
   const firstMatch = matches[0];
   if (!firstMatch) {

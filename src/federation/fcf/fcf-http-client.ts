@@ -1,13 +1,5 @@
 import { consoleFcfLogger, type FcfLogger } from './fcf-logger.js';
 
-/**
- * Small shared "fetch JSON from the FCF, with timeout/retry" helper.
- *
- * `FcfFederationProvider` has its own copy of this same timeout/retry/
- * backoff logic and is deliberately NOT refactored onto this client:
- * it's an already-tested, production match-sync path, and touching it
- * purely for DRY carries regression risk for no user-facing benefit.
- */
 export class FcfHttpError extends Error {
   constructor(message: string, options?: { cause?: unknown }) {
     super(message, options);
@@ -18,7 +10,6 @@ export class FcfHttpError extends Error {
 type FetchLike = (input: string, init: RequestInit) => Promise<Response>;
 
 export interface FcfHttpClientOptions {
-  /** Injectable for tests; defaults to the global `fetch`. */
   readonly fetchFn?: FetchLike;
   readonly timeoutMs?: number;
   readonly maxRetries?: number;
@@ -53,11 +44,6 @@ export class FcfHttpClient {
     this.logger = options.logger ?? consoleFcfLogger;
   }
 
-  /**
-   * GETs `url` and returns the parsed JSON body. `context` is a short,
-   * human-readable description of the call (e.g. `groupId="58162580"`)
-   * used only in error messages/log lines.
-   */
   async getJson(url: string, context: string): Promise<unknown> {
     let lastError: unknown;
     for (let attempt = 0; attempt <= this.maxRetries; attempt++) {

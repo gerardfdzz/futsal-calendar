@@ -1,22 +1,3 @@
-/**
- * Local dev server. Mounts the exact same framework-agnostic handler
- * functions the real Vercel deployment uses (see `api/*`) on a plain
- * `node:http` server, with a small path-based router in front of them —
- * nothing Vercel-specific is re-implemented or mocked here, so what you
- * see locally is what ships.
- *
- * Usage:
- *   npx tsx scripts/dev-server.ts [port]
- *   npm run dev   (see package.json)
- *
- * Then, e.g.:
- *   curl -i http://localhost:3000/api/calendar/58162580/54755993.ics
- *   curl -i http://localhost:3000/api/matches/58162580/54755993
- *   curl -i http://localhost:3000/api/disciplines
- *   curl -i http://localhost:3000/api/competitions
- *   curl -i "http://localhost:3000/api/competitions/58162570/groups"
- *   curl -i "http://localhost:3000/api/groups/58162580/teams"
- */
 import { createServer, type IncomingMessage, type ServerResponse } from 'node:http';
 import { FcfFederationProvider } from '../src/federation/fcf/fcf.provider.js';
 import { FcfCompetitionCatalogProvider } from '../src/federation/fcf/fcf-competition-catalog.provider.js';
@@ -43,15 +24,6 @@ const server = createServer((req, res) => {
 
 type Handler = (req: IncomingMessage, res: ServerResponse) => Promise<void>;
 
-/**
- * Small path-based router mirroring the `api/` folder's file-based
- * routing one-to-one — each branch below corresponds exactly to one
- * `api/**` file. Kept here rather than inferred from the filesystem: a
- * dev server that actually walked `api/` to reconstruct Vercel's routing
- * would be more "automatic" but would also silently diverge the moment
- * someone adds a route file and forgets this server — an explicit list is
- * easier to audit and keep honest.
- */
 function route(req: IncomingMessage): Handler {
   const pathname = safePathname(req.url ?? '');
   const segments = pathname.split('/').filter((segment) => segment.length > 0);

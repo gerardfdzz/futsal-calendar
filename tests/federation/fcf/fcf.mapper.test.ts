@@ -19,7 +19,7 @@ test('mapFcfMatch: our target team as home side is mapped with the FCF code as i
   const match = mapFcfMatch(dto, 3);
 
   assert.equal(match.homeTeam.id, '54755993');
-  assert.equal(match.homeTeam.name, 'CFS LA SÉNIA'); // trimmed
+  assert.equal(match.homeTeam.name, 'CFS LA SÉNIA');
 });
 
 test('mapFcfMatch: our target team as away side is mapped correctly', () => {
@@ -30,7 +30,6 @@ test('mapFcfMatch: our target team as away side is mapped correctly', () => {
 });
 
 test('mapFcfMatch: two teams with overlapping names are distinguished by CODEQUIPO, not NOMBRE', () => {
-  // Regression guard for the "CFS LA SÉNIA" vs "AES LA SÉNIA-STOCKPLUS" case.
   const dto = buildFcfMatchDto({
     CODEQUIPO_CASA: '54755993',
     NOMBRE_CASA: 'CFS LA SÉNIA',

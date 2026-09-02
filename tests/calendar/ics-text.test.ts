@@ -15,9 +15,6 @@ test('escapeIcsText: leaves apostrophes untouched (not a special character in RF
 });
 
 test('escapeIcsText: escapes backslashes before other characters, so nothing gets double-escaped', () => {
-  // A naive "escape ; then , then \\" ordering would turn `a;b` into
-  // `a\;b` and then re-escape that backslash into `a\\;b` — wrong. Doing
-  // backslash first avoids that.
   assert.equal(escapeIcsText('a;b\\c,d'), 'a\\;b\\\\c\\,d');
 });
 
@@ -27,7 +24,7 @@ test('escapeIcsText: combines multiple special characters correctly, matching a 
 });
 
 test('foldLine: leaves a line at or under 75 octets unchanged', () => {
-  const line = 'SUMMARY:' + 'a'.repeat(67); // exactly 75 octets total
+  const line = 'SUMMARY:' + 'a'.repeat(67);
   assert.equal(new TextEncoder().encode(line).length, 75);
   assert.equal(foldLine(line), line);
 });
@@ -58,8 +55,6 @@ test('foldLine: unfolding (strip CRLF + leading space) reconstructs the exact or
 });
 
 test('foldLine: never splits a multi-byte UTF-8 character across a fold boundary', () => {
-  // Each 'é' is 2 bytes in UTF-8. A naive byte-count-only fold would have
-  // a high chance of landing mid-character somewhere across 60 of them.
   const longValue = 'é'.repeat(60);
   const line = `LOCATION:${longValue}`;
   const folded = foldLine(line);
@@ -87,9 +82,6 @@ test('foldLine: never splits a multi-byte UTF-8 character across a fold boundary
 
   assert.ok(segments.length > 1, 'expected the line to actually fold');
 
-  // A strict UTF-8 decoder throws on a lone continuation byte or an
-  // incomplete multi-byte sequence — exactly what a mid-character split
-  // would produce. Every segment must decode cleanly on its own.
   const strictDecoder = new TextDecoder('utf-8', { fatal: true });
   const decodedSegments: string[] = [];
   for (const segment of segments) {

@@ -1,11 +1,5 @@
 import type { Match } from '../../src/domain/match.js';
 
-/**
- * Domain-level `Match` fixture, shared across `matches/` and `calendar/`
- * tests — those tests operate on `Match`, never on `FcfMatchDto` (that's
- * what `tests/fixtures/fcf.fixtures.ts` is for), keeping the two layers'
- * tests as decoupled as the code they test.
- */
 export function buildMatch(overrides: Partial<Match> = {}): Match {
   return {
     id: 'm1',

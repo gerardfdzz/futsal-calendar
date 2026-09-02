@@ -4,8 +4,8 @@ import { buildTeamCalendar } from '../../src/calendar/calendar.service.js';
 import { buildMatch } from '../fixtures/match.fixtures.js';
 import { FakeFederationProvider } from '../fixtures/fake-federation-provider.js';
 
-const HOME_ID = '54755993'; // CFS LA SÉNIA
-const OTHER_TEAM_SAME_NAME_ID = '50795143'; // AES LA SÉNIA-STOCKPLUS, same group
+const HOME_ID = '54755993';
+const OTHER_TEAM_SAME_NAME_ID = '50795143';
 
 test('builds an ICS containing only the requested team\'s matches', async () => {
   const homeMatch = buildMatch({
@@ -110,9 +110,6 @@ test('etag is stable across two calls with unchanged underlying data', async () 
   const first = await buildTeamCalendar(provider, { groupId: 'g', teamId: HOME_ID });
   const second = await buildTeamCalendar(provider, { groupId: 'g', teamId: HOME_ID });
 
-  // Regression guard: the ICS bodies differ (DTSTAMP/LAST-MODIFIED are
-  // "now"), but the ETag must not, since nothing about the match data
-  // itself changed between calls.
   assert.equal(first.etag, second.etag);
 });
 
@@ -128,7 +125,7 @@ test('etag changes when the underlying match data changes', async () => {
     buildMatch({
       homeTeam: { id: HOME_ID, name: 'CFS LA SÉNIA' },
       awayTeam: { id: '2', name: 'X' },
-      startsAt: new Date('2026-09-26T19:00:00.000Z'), // FCF moved the kickoff time
+      startsAt: new Date('2026-09-26T19:00:00.000Z'),
     }),
   ]);
 
@@ -154,6 +151,6 @@ test('passes icsOptions through to generateIcs (e.g. injectable now, duration)',
   });
 
   assert.ok(result.ics.includes('DTSTAMP:20260901T100000Z'));
-  assert.ok(result.ics.includes('DTEND;TZID=Europe/Madrid:20260926T193000')); // 16:30 UTC = 18:30 local + 60min
+  assert.ok(result.ics.includes('DTEND;TZID=Europe/Madrid:20260926T193000'));
   assert.ok(result.ics.includes(`UID:fcf-${result.ics.match(/UID:fcf-([^@]+)@/)?.[1]}@example.com`));
 });

@@ -7,8 +7,6 @@ interface TeamMatchesResponse {
   readonly matches: Match[];
 }
 
-/** Wraps `GET /api/matches/{groupId}/{teamId}` — see
- *  `src/http/matches-http-handler.ts` on the backend. */
 @Injectable({ providedIn: 'root' })
 export class TeamMatchesService {
   private readonly http = inject(HttpClient);

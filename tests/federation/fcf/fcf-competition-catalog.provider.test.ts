@@ -57,7 +57,7 @@ test('listTeams: builds the request URL with grupId, deduplicates and sorts by n
     return jsonResponse([
       { value: '50795143', label: 'AES LA SÉNIA-STOCKPLUS' },
       { value: '54755993', label: 'CFS LA SÉNIA' },
-      { value: '50795143', label: 'AES LA SÉNIA-STOCKPLUS' }, // repeated, another jornada
+      { value: '50795143', label: 'AES LA SÉNIA-STOCKPLUS' },
     ]);
   };
   const provider = new FcfCompetitionCatalogProvider({ fetchFn, logger: noopFcfLogger });
@@ -91,7 +91,7 @@ test('throws FcfCatalogProviderError for an unexpected response shape', async ()
 });
 
 test('throws FcfCatalogProviderError for an array with malformed entries', async () => {
-  const fetchFn = async () => jsonResponse([{ value: '1' /* missing label */ }]);
+  const fetchFn = async () => jsonResponse([{ value: '1'  }]);
   const provider = new FcfCompetitionCatalogProvider({ fetchFn, logger: noopFcfLogger });
 
   await assert.rejects(() => provider.listDisciplines(), FcfCatalogProviderError);
