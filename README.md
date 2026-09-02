@@ -10,6 +10,7 @@ Estado: **Milestone 1 (FCF API → provider → mapper → `Match[]`), Milestone
 - `npm run smoke:ics` (Milestone 2): genera el `.ics` real de un equipo y lo escribe en disco (`tmp-{teamId}.ics`). **Confirmado visualmente en un iPhone real** (Mail/Files Quick Look): fechas, horas y pabellones correctos, agrupados por día. Ver sección 5 sobre lo que aún no está resuelto (importarlo *dentro* de la app Calendar).
 - `npm run dev` (Milestone 3, nuevo): servidor HTTP local que monta el handler real. Verificado en este sandbox: `GET` válido → `200` con ICS + cabeceras correctas; `POST` → `405` con `Allow`; ruta mal formada → `400`; fallo de la FCF → `502` con `Cache-Control: no-store` (comprobado de verdad: este sandbox tampoco tiene acceso de red a `fcf.cat`, así que el propio error 403 de red se propaga correctamente como `502` — el camino de error está probado con un fallo real, no solo simulado).
 - `npm test` verificado en Windows (PowerShell/cmd) con una ruta de proyecto con espacio + guion (`OneDrive - Empresa\...`).
+- Despliegue en Vercel (Milestone 4, en curso): primer intento de deploy falló por invocar `npm run build` automáticamente sin `typescript` instalado (ver sección "Por qué el script se llama `typecheck` y no `build`" más abajo). Corregido renombrando el script; pendiente confirmar el redeploy.
 
 ## 1. Arquitectura
 
@@ -103,7 +104,7 @@ Comportamiento cubierto:
 
 ```bash
 npm install
-npm run build       # tsc --noEmit — TypeScript strict, sin `any`
+npm run typecheck   # tsc --noEmit — TypeScript strict, sin `any`
 npm test            # 126 tests, node:test vía tsx (cross-platform)
 npm run smoke:fcf    # llamada real a la FCF (Milestone 1)
 npm run smoke:ics    # genera un .ics real de un equipo real (Milestone 2)
@@ -124,7 +125,13 @@ Esto **no** sustituye la prueba real de Milestone 4 (una URL pública que un iPh
 
 ### Nota sobre cómo se ha verificado este código en tu equipo
 
-A partir de esta milestone trabajo directamente sobre tu carpeta (`futsal-calendar-milestone2`) en lugar de mandarte un `.zip` cada vez — ya no hace falta descomprimir nada. Una limitación que he detectado al probarlo: el acceso a tu equipo ejecuta comandos dentro de una máquina Linux aislada del propio entorno de Cowork, que **no** es tu terminal Windows real — puede leer y editar archivos de texto en tu carpeta sin problema, pero no puede ejecutar `npm test`/`npm run build` ahí, porque tu `node_modules` tiene binarios nativos compilados para Windows (`esbuild`) que esa máquina Linux no puede correr. Por eso sigo verificando todo (build + 126 tests + smoke real del servidor) en mi propio sandbox antes de escribir nada en tu carpeta, y te sigo pidiendo que confirmes `npm test`/`npm run build` en tu terminal real como última verificación — exactamente igual que en las Milestones 1 y 2, solo que ahora sin el paso del `.zip`.
+A partir de esta milestone trabajo directamente sobre tu carpeta (`futsal-calendar-milestone2`) en lugar de mandarte un `.zip` cada vez — ya no hace falta descomprimir nada. Una limitación que he detectado al probarlo: el acceso a tu equipo ejecuta comandos dentro de una máquina Linux aislada del propio entorno de Cowork, que **no** es tu terminal Windows real — puede leer y editar archivos de texto en tu carpeta sin problema, pero no puede ejecutar `npm test`/`npm run typecheck` ahí, porque tu `node_modules` tiene binarios nativos compilados para Windows (`esbuild`) que esa máquina Linux no puede correr. Por eso sigo verificando todo (build + 126 tests + smoke real del servidor) en mi propio sandbox antes de escribir nada en tu carpeta, y te sigo pidiendo que confirmes `npm test`/`npm run typecheck` en tu terminal real como última verificación — exactamente igual que en las Milestones 1 y 2, solo que ahora sin el paso del `.zip`.
+
+### Por qué el script se llama `typecheck` y no `build` (Milestone 4)
+
+Hasta la Milestone 3 este script se llamaba `build`. Al desplegar en Vercel, eso causó un fallo real: Vercel, con "Framework Preset: Other", ejecuta automáticamente `npm run build` si existe ese script en `package.json` — **incluso sin haberlo configurado explícitamente** en el dashboard, es su comportamiento por defecto. Además, la instalación de dependencias en Vercel usa `NODE_ENV=production`, que **omite `devDependencies`** (`typescript`, `tsx`, `@types/node` en nuestro caso), así que `tsc` ni siquiera estaba instalado cuando ese script se ejecutaba. Dos motivos independientes para el mismo fallo.
+
+La solución correcta no es marcar un override vacío de "Build Command" en el dashboard de Vercel — eso funciona, pero es un ajuste invisible en la UI que cualquiera que reimporte el proyecto (o lo despliegue desde cero) puede olvidar. La solución correcta está en el propio repositorio: renombrar el script a `typecheck`, un nombre que Vercel no invoca automáticamente. Las funciones de `api/` las compila el propio runtime Node de Vercel al vuelo a partir del `.ts`; nuestro `tsc --noEmit` nunca fue parte del proceso de build de producción, es solo un chequeo de tipos para desarrollo/CI — no debía ejecutarse ahí en primer lugar.
 
 ## 6. Lo que NO se ha hecho todavía (a propósito)
 
@@ -143,9 +150,9 @@ De Milestones 1-2 (sin cambios, seguimos sin haber visto casos reales):
 3. Nombre legible del grupo ("TGN Gr. 14") — sigue sin fuente confirmada.
 4. Cómo importar de verdad un `.ics` suscrito en Apple Calendar desde iPhone sin pasar por un flujo confuso (Mail/Files no deja claro el botón "Añadir todos") — sigue sin resolver; lo retomamos con la URL real de Milestone 4, que es el escenario que de verdad importa (`webcal://`, no un archivo suelto por Mail).
 
-Nuevas de Milestone 3:
+Nuevas de Milestone 3-4:
 
-5. **Dominio real de despliegue** — `DEFAULT_UID_DOMAIN` en `ics-config.ts` sigue siendo `midominio.com`. Hay que fijarlo antes de tener suscriptores reales (Milestone 4): cambiarlo después rompería el UID de cada evento ya sincronizado.
+5. ~~Dominio real de despliegue~~ — resuelto en Milestone 4: `DEFAULT_UID_DOMAIN` en `ics-config.ts` es ahora `partitsalcalendari.com`, el dominio real de despliegue. A partir de aquí, cambiarlo sería una breaking change (ver comentario en `ics-config.ts`).
 6. **¿`404` o `200` vacío para un equipo sin partidos?** Ver sección 6, último punto.
 7. **¿30 minutos de `max-age` es razonable?** Es una elección inicial sin datos reales de cuántos usuarios/peticiones habrá — fácil de ajustar, es una constante en `calendar-http-handler.ts`.
 

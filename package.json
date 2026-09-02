@@ -8,7 +8,7 @@
     "node": ">=20.11"
   },
   "scripts": {
-    "build": "tsc -p tsconfig.json --noEmit",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
     "test": "node scripts/run-tests.mjs",
     "test:watch": "node scripts/run-tests.mjs --watch",
     "smoke:fcf": "tsx scripts/smoke-fcf.ts",
