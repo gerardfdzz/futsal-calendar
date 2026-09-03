@@ -4,9 +4,6 @@
       <span class="material-symbols-outlined" aria-hidden="true">event_available</span>
       Afegir al calendari
     </a>
-    <button type="button" class="add-to-calendar__secondary" (click)="copyUrl()">
-      {{ copied() ? 'URL copiada!' : 'Copiar URL' }}
-    </button>
   } @else {
     <button type="button" class="add-to-calendar__primary" (click)="copyUrl()">
       <span class="material-symbols-outlined" aria-hidden="true">content_copy</span>
