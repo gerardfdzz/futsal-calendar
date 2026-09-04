@@ -52,7 +52,7 @@ function buildVEventLines(match: Match, config: VEventConfig): string[] {
   lines.push(`DTSTAMP:${formatUtcDateTime(config.now)}`);
   lines.push(`DTSTART;TZID=${ICS_TIME_ZONE}:${formatMadridLocalDateTime(match.startsAt)}`);
   lines.push(`DTEND;TZID=${ICS_TIME_ZONE}:${formatMadridLocalDateTime(endsAt)}`);
-  lines.push(`SUMMARY:${escapeIcsText(`${match.homeTeam.name} - ${match.awayTeam.name}`)}`);
+  lines.push(`SUMMARY:${escapeIcsText(`⚽ ${match.homeTeam.name} - ${match.awayTeam.name}`)}`);
 
   if (match.venue) {
     lines.push(`LOCATION:${escapeIcsText(match.venue.name)}`);

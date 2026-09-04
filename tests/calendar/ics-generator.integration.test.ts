@@ -20,7 +20,7 @@ test('FCF DTO -> mapFcfMatch -> generateIcs produces the expected UID and local 
 
   assert.ok(ics.includes('UID:fcf-4151650@partitsalcalendari.com'));
   assert.ok(ics.includes('DTSTART;TZID=Europe/Madrid:20260926T183000'));
-  assert.ok(ics.includes("SUMMARY:CFS LA SÉNIA - AES LA SÉNIA-STOCKPLUS"));
+  assert.ok(ics.includes("SUMMARY:⚽ CFS LA SÉNIA - AES LA SÉNIA-STOCKPLUS"));
   assert.ok(ics.includes("LOCATION:Pavelló Municipal d'Esports"));
   assert.ok(ics.includes('STATUS:CONFIRMED'));
 });

@@ -58,7 +58,7 @@ test('generateIcs: builds a VEVENT with UID, DTSTART/DTEND in Europe/Madrid, and
   assert.ok(lines.includes('UID:fcf-4151650@partitsalcalendari.com'));
   assert.ok(lines.includes('DTSTART;TZID=Europe/Madrid:20260926T183000'));
   assert.ok(lines.includes('DTEND;TZID=Europe/Madrid:20260926T200000'));
-  assert.ok(lines.includes("SUMMARY:CFS LA SÉNIA - L'AMETLLA"));
+  assert.ok(lines.includes("SUMMARY:⚽ CFS LA SÉNIA - L'AMETLLA"));
 });
 
 test('generateIcs: UID stays stable when date/time/venue/status change (the whole point of using CODACTA)', () => {
@@ -124,7 +124,7 @@ test('generateIcs: special characters in team names and venue are escaped, never
 
   const summary = findLine(lines, 'SUMMARY:');
   const location = findLine(lines, 'LOCATION:');
-  assert.equal(summary, "SUMMARY:L'Ametlla\\; Team\\, Inc. - Sènia\\\\FC");
+  assert.equal(summary, "SUMMARY:⚽ L'Ametlla\\; Team\\, Inc. - Sènia\\\\FC");
   assert.equal(location, "LOCATION:Pavelló d'Esports\\; Zona Nord\\, Camp 2");
 });
 
