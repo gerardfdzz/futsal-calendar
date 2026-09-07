@@ -2,7 +2,7 @@ import type { Match } from '../../domain/match.js';
 import type { FederationProvider } from '../federation-provider.js';
 import type { FcfMatchDto, FcfMatchesResponse } from './fcf.types.js';
 import { isBye } from './fcf-bye.js';
-import { FcfMappingError, mapFcfMatch } from './fcf.mapper.js';
+import { mapFcfMatch } from './fcf.mapper.js';
 import { consoleFcfLogger, type FcfLogger } from './fcf-logger.js';
 
 export class FcfProviderError extends Error {
@@ -162,22 +162,18 @@ export class FcfFederationProvider implements FederationProvider {
       }
 
       for (const dto of dtos) {
-        if (isBye(dto)) {
-          continue;
-        }
-
         try {
-          matches.push(mapFcfMatch(dto, round, this.logger));
-        } catch (error) {
-          if (error instanceof FcfMappingError) {
-            this.logger.error('Skipping one match that failed to map', {
-              groupId,
-              codacta: dto.CODACTA,
-              error: error.message,
-            });
+          if (isBye(dto)) {
             continue;
           }
-          throw error;
+          matches.push(mapFcfMatch(dto, round, this.logger));
+        } catch (error) {
+          this.logger.error('Skipping one match that failed to process', {
+            groupId,
+            codacta: dto.CODACTA,
+            error: error instanceof Error ? error.message : String(error),
+          });
+          continue;
         }
       }
     }

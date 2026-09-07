@@ -74,6 +74,18 @@ test('getMatches: a match that fails to map is skipped, the rest still come thro
   assert.equal(matches[0]?.id, '1');
 });
 
+test('getMatches: a match with an unexpectedly non-string field (real FCF data is not fully trustworthy) is skipped, not a whole-request crash', async () => {
+  const good = buildFcfMatchDto({ CODACTA: '1' });
+  const malformed = buildFcfMatchDto({ CODACTA: '2', CODEQUIPO_CASA: null as unknown as string });
+  const fetchFn = async () => jsonResponse({ '1': [good, malformed] });
+
+  const provider = new FcfFederationProvider({ fetchFn, logger: noopFcfLogger });
+  const matches = await provider.getMatches('58162580');
+
+  assert.equal(matches.length, 1);
+  assert.equal(matches[0]?.id, '1');
+});
+
 test('getMatches: retries on HTTP 5xx and succeeds once the FCF recovers', async () => {
   let calls = 0;
   const fetchFn = async () => {

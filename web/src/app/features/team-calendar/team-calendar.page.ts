@@ -1,3 +1,4 @@
+import { HttpErrorResponse } from '@angular/common/http';
 import { Component, computed, inject, signal } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { TeamMatchesService } from '../../core/services/team-matches.service';
@@ -42,11 +43,24 @@ export class TeamCalendarPage {
         this.matches.set(matches);
         this.loading.set(false);
       },
-      error: () => {
+      error: (err: HttpErrorResponse) => {
         this.loading.set(false);
-        this.error.set("No s'ha pogut carregar el calendari d'aquest equip. Torna-ho a provar.");
+        this.error.set(this.buildErrorMessage(err));
       },
     });
+  }
+
+  private buildErrorMessage(err: HttpErrorResponse): string {
+    if (err.status === 0) {
+      return 'No hi ha connexió amb el servidor. Comprova la teva connexió a internet i torna-ho a provar.';
+    }
+    if (err.status === 400) {
+      return "L'equip o el grup indicats no són vàlids. Torna a triar l'equip des de l'inici.";
+    }
+    if (err.status === 502) {
+      return "La Federació Catalana de Futbol no respon en aquest moment. Torna-ho a provar d'aquí una estona.";
+    }
+    return "No s'ha pogut carregar el calendari d'aquest equip. Torna-ho a provar.";
   }
 
   private pickOurTeam() {
