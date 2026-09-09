@@ -29,6 +29,11 @@
                 "glob": "**/*",
                 "input": "src/assets/favicon",
                 "output": "/"
+              },
+              {
+                "glob": "**/*",
+                "input": "src/assets/seo",
+                "output": "/"
               }
             ],
             "styles": [
