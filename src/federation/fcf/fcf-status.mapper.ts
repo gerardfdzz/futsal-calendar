@@ -2,7 +2,10 @@ import type { MatchStatus } from '../../domain/match-status.js';
 import type { FcfMatchDto } from './fcf.types.js';
 import { noopFcfLogger, type FcfLogger } from './fcf-logger.js';
 
-const KNOWN_STATUS_CODES: ReadonlyMap<string, MatchStatus> = new Map([['0|0', 'scheduled']]);
+const KNOWN_STATUS_CODES: ReadonlyMap<string, MatchStatus> = new Map([
+  ['0|0', 'scheduled'],
+  ['1|1', 'finished'],
+]);
 
 export function mapFcfStatus(
   dto: Pick<FcfMatchDto, 'CERRADA' | 'ESTADO' | 'CODACTA'>,

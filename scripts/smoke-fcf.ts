@@ -2,9 +2,9 @@ import { FcfFederationProvider } from '../src/federation/fcf/fcf.provider.js';
 import { filterTeamMatches } from '../src/matches/match-filter.js';
 
 const GROUP_ID = process.argv[2] ?? '58162580';
+const LOOKUP_CODACTA = process.argv[3];
 const KNOWN_TEAM_IDS = {
   'CFS LA SÉNIA': '54755993',
-  'AES LA SÉNIA-STOCKPLUS': '50795143',
 };
 
 async function main(): Promise<void> {
@@ -25,6 +25,16 @@ async function main(): Promise<void> {
   }
   if (matches.length > 5) {
     console.log(`... (${matches.length - 5} more)`);
+  }
+
+  if (LOOKUP_CODACTA) {
+    console.log(`\n--- Match with CODACTA=${LOOKUP_CODACTA} ---`);
+    const found = matches.find((m) => m.id === LOOKUP_CODACTA);
+    if (!found) {
+      console.log('(not found in mapped matches — could be a bye, or excluded/failed to map; check warnings above)');
+    } else {
+      console.log(JSON.stringify(found, null, 2));
+    }
   }
 
   console.log('\n--- Filtered by known team ---');

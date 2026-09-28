@@ -211,3 +211,34 @@ test('generateIcs: multiple matches each get their own VEVENT, in the order give
   assert.equal(beginCount, 2);
   assert.ok(ics.indexOf('UID:fcf-A@') < ics.indexOf('UID:fcf-B@'));
 });
+test('generateIcs: SUMMARY includes "FINAL" and the score when the match has one', () => {
+  const match = buildMatch({
+    homeTeam: { id: '54755993', name: 'CFS LA SÉNIA' },
+    awayTeam: { id: '12345678', name: "L'AMETLLA" },
+    score: { home: 4, away: 3 },
+  });
+  const lines = unfoldIcs(generateIcs([match], { calendarName: 'X', now: FIXED_NOW }));
+
+  assert.ok(lines.includes("SUMMARY:⚽ FINAL · CFS LA SÉNIA 4 - 3 L'AMETLLA"));
+});
+
+test('generateIcs: SUMMARY has no score/FINAL when the match has none (e.g. not yet played)', () => {
+  const match = buildMatch({
+    homeTeam: { id: '54755993', name: 'CFS LA SÉNIA' },
+    awayTeam: { id: '12345678', name: "L'AMETLLA" },
+  });
+  const lines = unfoldIcs(generateIcs([match], { calendarName: 'X', now: FIXED_NOW }));
+
+  assert.ok(lines.includes("SUMMARY:⚽ CFS LA SÉNIA - L'AMETLLA"));
+});
+
+test('generateIcs: a 0-0 score still renders as a final result, not as "no score"', () => {
+  const match = buildMatch({
+    homeTeam: { id: '1', name: 'A' },
+    awayTeam: { id: '2', name: 'B' },
+    score: { home: 0, away: 0 },
+  });
+  const lines = unfoldIcs(generateIcs([match], { calendarName: 'X', now: FIXED_NOW }));
+
+  assert.ok(lines.includes('SUMMARY:⚽ FINAL · A 0 - 0 B'));
+});

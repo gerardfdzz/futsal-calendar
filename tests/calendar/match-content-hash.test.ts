@@ -68,3 +68,14 @@ test('an empty match list still produces a valid, stable hash', () => {
   assert.equal(hashA, hashB);
   assert.ok(hashA.startsWith('"') && hashA.endsWith('"'));
 });
+test('changes when a score is added (a match transitioning to played must bust the cache)', () => {
+  const before = computeMatchesContentHash([buildMatch()], 'x');
+  const after = computeMatchesContentHash([buildMatch({ score: { home: 3, away: 4 } })], 'x');
+  assert.notEqual(before, after);
+});
+
+test('changes when the score itself changes (a corrected result must also bust the cache)', () => {
+  const before = computeMatchesContentHash([buildMatch({ score: { home: 3, away: 4 } })], 'x');
+  const after = computeMatchesContentHash([buildMatch({ score: { home: 3, away: 5 } })], 'x');
+  assert.notEqual(before, after);
+});

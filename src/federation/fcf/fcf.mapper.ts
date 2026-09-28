@@ -1,6 +1,7 @@
 import type { Match } from '../../domain/match.js';
 import type { TeamRef } from '../../domain/team.js';
 import type { Venue } from '../../domain/venue.js';
+import type { MatchScore } from '../../domain/match-score.js';
 import type { FcfMatchDto } from './fcf.types.js';
 import { parseFcfDate } from './fcf-date.js';
 import { mapFcfStatus } from './fcf-status.mapper.js';
@@ -33,6 +34,7 @@ export function mapFcfMatch(dto: FcfMatchDto, round: number, logger: FcfLogger =
   const awayTeam = mapTeam(dto.CODEQUIPO_FUERA, dto.NOMBRE_FUERA, dto.CODCLUB_FUERA, dto.ESCUDO_FUERA);
   const venue = mapVenue(dto.CAMPO, dto.CODIGO_CAMPO, dto.LATITUD, dto.LONGITUD);
   const status = mapFcfStatus(dto, logger);
+  const score = mapScore(dto.GOLES_CASA, dto.GOLES_FUERA);
 
   return {
     id: dto.CODACTA.trim(),
@@ -43,6 +45,7 @@ export function mapFcfMatch(dto: FcfMatchDto, round: number, logger: FcfLogger =
     ...(venue ? { venue } : {}),
     groupId: dto.CODGRUPO.trim(),
     status,
+    ...(score ? { score } : {}),
   };
 }
 
@@ -84,6 +87,24 @@ function mapVenue(
     ...(latitude !== undefined ? { latitude } : {}),
     ...(longitude !== undefined ? { longitude } : {}),
   };
+}
+
+function mapScore(rawHomeGoals: string, rawAwayGoals: string): MatchScore | undefined {
+  const home = parseNonNegativeInt(rawHomeGoals);
+  const away = parseNonNegativeInt(rawAwayGoals);
+  if (home === undefined || away === undefined) {
+    return undefined;
+  }
+  return { home, away };
+}
+
+function parseNonNegativeInt(raw: string): number | undefined {
+  const normalized = normalizeOptionalString(raw);
+  if (normalized === undefined) {
+    return undefined;
+  }
+  const value = Number(normalized);
+  return Number.isInteger(value) && value >= 0 ? value : undefined;
 }
 
 function normalizeOptionalString(raw: string | null | undefined): string | undefined {

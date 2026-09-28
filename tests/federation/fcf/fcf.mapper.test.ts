@@ -112,3 +112,37 @@ test('mapFcfMatch: throws FcfMappingError for an unparsable COMIENZO1, tagged wi
     (error: unknown) => error instanceof FcfMappingError && error.message.includes('999'),
   );
 });
+test('mapFcfMatch: a played match with numeric GOLES_CASA/GOLES_FUERA gets a score', () => {
+  const dto = buildFcfMatchDto({ GOLES_CASA: '3', GOLES_FUERA: '4' });
+  const match = mapFcfMatch(dto, 3);
+
+  assert.deepEqual(match.score, { home: 3, away: 4 });
+});
+
+test('mapFcfMatch: a 0-0 result is a real score, not treated as "no score"', () => {
+  const dto = buildFcfMatchDto({ GOLES_CASA: '0', GOLES_FUERA: '0' });
+  const match = mapFcfMatch(dto, 3);
+
+  assert.deepEqual(match.score, { home: 0, away: 0 });
+});
+
+test('mapFcfMatch: empty GOLES_CASA/GOLES_FUERA (not yet played) yields no score', () => {
+  const dto = buildFcfMatchDto({ GOLES_CASA: '', GOLES_FUERA: '' });
+  const match = mapFcfMatch(dto, 3);
+
+  assert.equal(match.score, undefined);
+});
+
+test('mapFcfMatch: only one side having a numeric goal count yields no score (never a half result)', () => {
+  const dto = buildFcfMatchDto({ GOLES_CASA: '2', GOLES_FUERA: '' });
+  const match = mapFcfMatch(dto, 3);
+
+  assert.equal(match.score, undefined);
+});
+
+test('mapFcfMatch: a negative or non-numeric GOLES_* value yields no score, never a made-up number', () => {
+  const dto = buildFcfMatchDto({ GOLES_CASA: '-1', GOLES_FUERA: 'N/A' });
+  const match = mapFcfMatch(dto, 3);
+
+  assert.equal(match.score, undefined);
+});

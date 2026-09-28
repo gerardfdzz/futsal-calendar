@@ -153,6 +153,8 @@ The backend script that runs `tsc --noEmit` is called `typecheck`, not `build` �
 
 **Platform-aware subscription**: the Google Calendar app for Android has no way to subscribe to a URL directly (confirmed — it's a known limitation of the app itself, not something a client can work around), so a single `webcal://` link button only really works on Apple. `AddToCalendarButtonComponent` detects the platform from `navigator.userAgent`: on Apple (iOS/macOS) it keeps the one-tap `webcal://` link; on any other device, the primary button becomes "copy URL", together with a shortcut to Google Calendar's add-by-URL screen and instructions for that flow.
 
+**Score in `SUMMARY`, independent of status**: once the FCF publishes numeric `GOLES_CASA`/`GOLES_FUERA` for both sides, `mapFcfMatch` attaches a `score` to the `Match` and the event's `SUMMARY` becomes `⚽ FINAL · Home X - Y Away`. This is deliberately **not** gated on `status === 'finished'`, even though that status code (`CERRADA=1, ESTADO=1`) is now confirmed: score presence is a direct, observable signal on its own, and stays correct even for any future status combination we haven't seen yet. `match-content-hash.ts` includes the score so a result landing (or being corrected) busts the ETag like any other change.
+
 **No team crests**: the crest URLs the FCF returns (`ESCUDO_CASA`/`ESCUDO_FUERA`) don't load reliably, so the UI only shows the team name — no image and no initials fallback.
 
 **Visual design**: the UI's look and feel (colors, typography, spacing, layout) was designed with [Google Stitch](https://stitch.withgoogle.com/), Google's AI-assisted UI design tool, starting from this project: https://stitch.withgoogle.com/projects/6523744783108261217. The resulting design tokens were ported by hand into plain CSS custom properties in `web/src/styles/_tokens.scss` — no runtime dependency on Stitch.
@@ -161,12 +163,11 @@ The backend script that runs `tsc --noEmit` is called `typecheck`, not `build` �
 
 - Cache/cron/persistence beyond `Cache-Control` + ETag (see "Design decisions").
 - A database.
-- Authentication, favorites, user profile, live results — no reliable data source and no clear need for the MVP.
-- Updating a match's `SUMMARY`/`DESCRIPTION` with the result once it's over — the architecture allows for it (`GOLES_CASA`/`GOLES_FUERA`/`CERRADA` are already available in the DTO), but it isn't implemented.
+- Authentication, favorites, user profile, live (in-progress) results — no reliable data source and no clear need for the MVP.
 
 ## Open questions
 
-1. FCF status codes beyond `scheduled` (finished/postponed/suspended/cancelled) — none seen yet in real data.
+1. FCF status codes beyond `scheduled`/`finished` — `CERRADA=1, ESTADO=1` is now confirmed as `finished` against real data (grup 60090763, 2026-09-26/27, 6/6 played matches, each with a real score); `postponed`/`suspended`/`cancelled` are still unconfirmed.
 2. Confirm `isBye` against a real "Descans" (bye) case.
 3. Human-readable group name (e.g. "TGN Gr. 14") — the FCF doesn't expose it outside the competition page, which this app doesn't scrape.
 4. `404` or `200` with an empty calendar for a team with no matches? It's a product decision, not a technical one; right now it's `200` on purpose (see `calendar.service.ts`).

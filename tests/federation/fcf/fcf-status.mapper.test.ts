@@ -12,6 +12,19 @@ test('mapFcfStatus: an unconfirmed combination maps to "unknown", never a guess'
   assert.equal(mapFcfStatus({ CODACTA: '1', CERRADA: '9', ESTADO: '9' }), 'unknown');
 });
 
+test('mapFcfStatus: CERRADA=1, ESTADO=1 maps to "finished" (confirmed against real FCF data)', () => {
+  assert.equal(mapFcfStatus({ CODACTA: '4293175', CERRADA: '1', ESTADO: '1' }), 'finished');
+});
+
+test('mapFcfStatus: does NOT log anything for the "finished" combination either', () => {
+  let warnCalls = 0;
+  const logger = { info: () => {}, warn: () => warnCalls++, error: () => {} };
+
+  mapFcfStatus({ CODACTA: '4293175', CERRADA: '1', ESTADO: '1' }, logger);
+
+  assert.equal(warnCalls, 0);
+});
+
 test('mapFcfStatus: tolerates surrounding whitespace in the raw codes', () => {
   assert.equal(mapFcfStatus({ CODACTA: '1', CERRADA: ' 0 ', ESTADO: ' 0 ' }), 'scheduled');
 });

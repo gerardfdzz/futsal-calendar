@@ -1,6 +1,7 @@
 import type { TeamRef } from './team.js';
 import type { Venue } from './venue.js';
 import type { MatchStatus } from './match-status.js';
+import type { MatchScore } from './match-score.js';
 
 export interface Match {
   readonly id: string;
@@ -17,4 +18,6 @@ export interface Match {
   readonly groupId: string;
 
   readonly status: MatchStatus;
+
+  readonly score?: MatchScore;
 }
