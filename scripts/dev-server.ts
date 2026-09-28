@@ -78,7 +78,12 @@ const serveGroups: Handler = async (req, res) => {
 };
 
 const serveTeams: Handler = async (req, res) => {
-  const response = await handleTeamsRequest(catalog, { method: req.method, url: req.url ?? '' });
+  const response = await handleTeamsRequest(
+    catalog,
+    { method: req.method, url: req.url ?? '' },
+    undefined,
+    matchProvider,
+  );
   res.writeHead(response.status, response.headers);
   res.end(response.body);
 };

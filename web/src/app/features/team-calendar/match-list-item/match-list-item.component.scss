@@ -11,7 +11,7 @@
 
   &__when {
     display: flex;
-    align-items: baseline;
+    align-items: center;
     gap: var(--space-sm);
   }
 
@@ -29,18 +29,46 @@
   }
 
   &__matchup {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: var(--space-xs);
     margin: 0;
     font-size: 16px;
     color: var(--color-on-surface);
   }
 
-  &__team--us {
+  &__side {
+    display: flex;
+    align-items: center;
+    gap: var(--space-xs);
+    min-width: 0;
+  }
+
+  &__side--away {
+    flex-direction: row-reverse;
+  }
+
+  &__crest {
+    flex-shrink: 0;
+    width: 24px;
+    height: 24px;
+    object-fit: contain;
+  }
+
+  &__team-name--us {
     font-weight: 700;
   }
 
   &__sep {
     margin: 0 var(--space-xs);
     color: var(--color-on-surface-variant);
+  }
+
+  &__score {
+    margin: 0 var(--space-xs);
+    font-weight: 700;
+    color: var(--color-on-surface);
   }
 
   &__venue {

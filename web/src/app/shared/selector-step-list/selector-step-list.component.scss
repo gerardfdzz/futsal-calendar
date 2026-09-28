@@ -37,6 +37,13 @@
     background: var(--color-surface-container-high);
     border: 1px solid var(--color-surface-variant);
     color: var(--color-on-surface-variant);
+    overflow: hidden;
+  }
+
+  &__crest {
+    width: 36px;
+    height: 36px;
+    object-fit: contain;
   }
 
   &__name {

@@ -12,4 +12,19 @@
     background: var(--color-status-scheduled-bg);
     color: var(--color-status-scheduled-text);
   }
+
+  &--finished {
+    background: var(--color-status-finished-bg);
+    color: var(--color-status-finished-text);
+  }
+
+  &--postponed {
+    background: var(--color-status-postponed-bg);
+    color: var(--color-status-postponed-text);
+  }
+
+  &--cancelled {
+    background: var(--color-status-cancelled-bg);
+    color: var(--color-status-cancelled-text);
+  }
 }

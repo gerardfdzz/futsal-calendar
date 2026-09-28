@@ -8,6 +8,8 @@ import {
 } from '../../src/http/catalog-http-handler.js';
 import { noopHttpLogger } from '../../src/http/http-logger.js';
 import { FakeCompetitionCatalogProvider } from '../fixtures/fake-competition-catalog-provider.js';
+import { FakeFederationProvider } from '../fixtures/fake-federation-provider.js';
+import { buildMatch } from '../fixtures/match.fixtures.js';
 import { DEFAULT_DISCIPLINA_ID, DEFAULT_TEMPORADA_ID } from '../../src/federation/fcf/fcf-catalog-config.js';
 
 test('handleDisciplinesRequest: 200 with the catalog JSON', async () => {
@@ -100,4 +102,73 @@ test('handleTeamsRequest: a malformed path returns 400 without calling the provi
 
   assert.equal(response.status, 400);
   assert.equal(catalog.calledWith.length, 0);
+});
+
+test('handleTeamsRequest: without a federation provider, teams have no crest (unchanged behavior)', async () => {
+  const catalog = new FakeCompetitionCatalogProvider({ teams: [{ id: '54755993', name: 'CFS LA SÉNIA' }] });
+
+  const response = await handleTeamsRequest(
+    catalog,
+    { method: 'GET', url: '/api/groups/58162580/teams' },
+    noopHttpLogger,
+  );
+
+  assert.deepEqual(JSON.parse(response.body), [{ id: '54755993', name: 'CFS LA SÉNIA' }]);
+});
+
+test('handleTeamsRequest: enriches each team with its crest from the matches endpoint', async () => {
+  const catalog = new FakeCompetitionCatalogProvider({
+    teams: [
+      { id: '54755993', name: 'CFS LA SÉNIA' },
+      { id: '12345678', name: "L'AMETLLA" },
+    ],
+  });
+  const federation = new FakeFederationProvider([
+    buildMatch({
+      homeTeam: { id: '54755993', name: 'CFS LA SÉNIA', crest: 'https://files.fcf.cat/escudos/clubes/escudos/a.png' },
+      awayTeam: { id: '12345678', name: "L'AMETLLA", crest: 'https://files.fcf.cat/escudos/clubes/escudos/b.png' },
+    }),
+  ]);
+
+  const response = await handleTeamsRequest(
+    catalog,
+    { method: 'GET', url: '/api/groups/58162580/teams' },
+    noopHttpLogger,
+    federation,
+  );
+
+  assert.deepEqual(federation.calledWithGroupIds, ['58162580']);
+  assert.deepEqual(JSON.parse(response.body), [
+    { id: '54755993', name: 'CFS LA SÉNIA', crest: 'https://files.fcf.cat/escudos/clubes/escudos/a.png' },
+    { id: '12345678', name: "L'AMETLLA", crest: 'https://files.fcf.cat/escudos/clubes/escudos/b.png' },
+  ]);
+});
+
+test('handleTeamsRequest: a team with no crest in the matches data is left as-is, never a made-up value', async () => {
+  const catalog = new FakeCompetitionCatalogProvider({ teams: [{ id: '99999999', name: 'Sense partits encara' }] });
+  const federation = new FakeFederationProvider([buildMatch()]);
+
+  const response = await handleTeamsRequest(
+    catalog,
+    { method: 'GET', url: '/api/groups/58162580/teams' },
+    noopHttpLogger,
+    federation,
+  );
+
+  assert.deepEqual(JSON.parse(response.body), [{ id: '99999999', name: 'Sense partits encara' }]);
+});
+
+test('handleTeamsRequest: if fetching matches for crest enrichment fails, still returns the plain team list (200), never fails the request', async () => {
+  const catalog = new FakeCompetitionCatalogProvider({ teams: [{ id: '54755993', name: 'CFS LA SÉNIA' }] });
+  const federation = new FakeFederationProvider([], new Error('FCF is down'));
+
+  const response = await handleTeamsRequest(
+    catalog,
+    { method: 'GET', url: '/api/groups/58162580/teams' },
+    noopHttpLogger,
+    federation,
+  );
+
+  assert.equal(response.status, 200);
+  assert.deepEqual(JSON.parse(response.body), [{ id: '54755993', name: 'CFS LA SÉNIA' }]);
 });

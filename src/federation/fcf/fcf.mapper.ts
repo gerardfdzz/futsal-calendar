@@ -7,6 +7,8 @@ import { parseFcfDate } from './fcf-date.js';
 import { mapFcfStatus } from './fcf-status.mapper.js';
 import { noopFcfLogger, type FcfLogger } from './fcf-logger.js';
 
+const FCF_CREST_BASE_URL = 'https://files.fcf.cat/escudos/clubes/escudos/';
+
 export class FcfMappingError extends Error {
   constructor(codacta: string, reason: string, options?: { cause?: unknown }) {
     super(`Cannot map FCF match CODACTA="${codacta}": ${reason}`, options);
@@ -56,14 +58,22 @@ function mapTeam(
   crest: string | null,
 ): TeamRef {
   const normalizedClubId = normalizeOptionalString(clubId);
-  const normalizedCrest = normalizeOptionalString(crest);
+  const crestUrl = buildCrestUrl(crest);
 
   return {
     id: code.trim(),
     name: rawName.trim(),
     ...(normalizedClubId !== undefined ? { clubId: normalizedClubId } : {}),
-    ...(normalizedCrest !== undefined ? { crest: normalizedCrest } : {}),
+    ...(crestUrl !== undefined ? { crest: crestUrl } : {}),
   };
+}
+
+function buildCrestUrl(rawCrestFilename: string | null): string | undefined {
+  const filename = normalizeOptionalString(rawCrestFilename);
+  if (filename === undefined) {
+    return undefined;
+  }
+  return `${FCF_CREST_BASE_URL}${filename}`;
 }
 
 function mapVenue(

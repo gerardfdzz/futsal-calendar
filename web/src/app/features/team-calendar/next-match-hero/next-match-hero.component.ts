@@ -1,6 +1,7 @@
 import { Component, computed, input } from '@angular/core';
 import type { Match } from '../../../core/models/match.model';
 import { formatMatchDay, formatMatchTime } from '../../../core/utils/date-format';
+import { hideBrokenCrest } from '../../../core/utils/crest';
 import { StatusBadgeComponent } from '../../../shared/status-badge/status-badge.component';
 
 @Component({
@@ -18,4 +19,6 @@ export class NextMatchHeroComponent {
   readonly kickoff = computed(() => new Date(this.match().startsAt));
   readonly dayLabel = computed(() => formatMatchDay(this.kickoff()));
   readonly timeLabel = computed(() => formatMatchTime(this.kickoff()));
+
+  readonly hideCrest = hideBrokenCrest;
 }

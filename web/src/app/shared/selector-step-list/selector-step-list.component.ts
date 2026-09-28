@@ -1,8 +1,9 @@
-import { Component, input, output } from '@angular/core';
+import { Component, input, output, signal } from '@angular/core';
 
 export interface SelectableOption {
   readonly id: string;
   readonly name: string;
+  readonly crest?: string;
 }
 
 @Component({
@@ -15,4 +16,14 @@ export class SelectorStepListComponent {
   readonly items = input.required<readonly SelectableOption[]>();
   readonly emptyLabel = input('No hi ha resultats.');
   readonly select = output<SelectableOption>();
+
+  private readonly brokenCrestIds = signal<ReadonlySet<string>>(new Set());
+
+  hasCrest(item: SelectableOption): boolean {
+    return item.crest !== undefined && !this.brokenCrestIds().has(item.id);
+  }
+
+  onCrestError(id: string): void {
+    this.brokenCrestIds.update((broken) => new Set(broken).add(id));
+  }
 }

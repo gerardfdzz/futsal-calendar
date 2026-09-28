@@ -1,4 +1,6 @@
 import type { CompetitionCatalogProvider } from '../federation/competition-catalog-provider.js';
+import type { FederationProvider } from '../federation/federation-provider.js';
+import type { TeamOption } from '../domain/competition-catalog.js';
 import { DEFAULT_DISCIPLINA_ID, DEFAULT_TEMPORADA_ID } from '../federation/fcf/fcf-catalog-config.js';
 import {
   InvalidRouteError,
@@ -83,6 +85,7 @@ export async function handleTeamsRequest(
   catalog: CompetitionCatalogProvider,
   request: JsonHttpRequest,
   logger: HttpLogger = consoleHttpLogger,
+  federation?: FederationProvider,
 ): Promise<JsonHttpResponse> {
   const methodError = checkMethod(request.method);
   if (methodError) return methodError;
@@ -95,10 +98,45 @@ export async function handleTeamsRequest(
   }
 
   try {
-    return jsonOk(await catalog.listTeams(grupId));
+    const teams = await catalog.listTeams(grupId);
+    const teamsWithCrests = federation ? await enrichTeamsWithCrests(teams, federation, grupId, logger) : teams;
+    return jsonOk(teamsWithCrests);
   } catch (error) {
     return upstreamError(logger, `equipos (grupId="${grupId}")`, error);
   }
+}
+
+async function enrichTeamsWithCrests(
+  teams: readonly TeamOption[],
+  federation: FederationProvider,
+  grupId: string,
+  logger: HttpLogger,
+): Promise<TeamOption[]> {
+  let matches;
+  try {
+    matches = await federation.getMatches(grupId);
+  } catch (error) {
+    logger.error('failed to fetch matches for crest enrichment; returning teams without crests', {
+      grupId,
+      error: error instanceof Error ? error.message : String(error),
+    });
+    return [...teams];
+  }
+
+  const crestByTeamId = new Map<string, string>();
+  for (const match of matches) {
+    if (match.homeTeam.crest) {
+      crestByTeamId.set(match.homeTeam.id, match.homeTeam.crest);
+    }
+    if (match.awayTeam.crest) {
+      crestByTeamId.set(match.awayTeam.id, match.awayTeam.crest);
+    }
+  }
+
+  return teams.map((team) => {
+    const crest = crestByTeamId.get(team.id);
+    return crest !== undefined ? { ...team, crest } : team;
+  });
 }
 
 function checkMethod(method: string | undefined): JsonHttpResponse | undefined {

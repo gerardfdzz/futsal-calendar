@@ -37,6 +37,13 @@ export class TeamCalendarPage {
   readonly nextMatch = computed(() => this.upcomingMatches()[0]);
   readonly laterMatches = computed(() => this.upcomingMatches().slice(1));
 
+  readonly pastMatches = computed(() => {
+    const now = Date.now();
+    return [...this.matches()]
+      .filter((match) => new Date(match.startsAt).getTime() < now)
+      .sort((a, b) => new Date(b.startsAt).getTime() - new Date(a.startsAt).getTime());
+  });
+
   constructor() {
     this.matchesService.getTeamMatches(this.groupId, this.teamId).subscribe({
       next: (matches) => {

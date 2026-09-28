@@ -76,6 +76,20 @@ test('mapFcfMatch: null crest becomes undefined, never the string "null"', () =>
   assert.equal(match.awayTeam.crest, undefined);
 });
 
+test('mapFcfMatch: crest filename is turned into a full FCF CDN URL, never used bare', () => {
+  const dto = buildFcfMatchDto({ ESCUDO_CASA: '00100_0000662159_lasenia_200x200.png' });
+  const match = mapFcfMatch(dto, 3);
+
+  assert.equal(match.homeTeam.crest, 'https://files.fcf.cat/escudos/clubes/escudos/00100_0000662159_lasenia_200x200.png');
+});
+
+test('mapFcfMatch: empty-string crest becomes undefined, not a base-URL-only string', () => {
+  const dto = buildFcfMatchDto({ ESCUDO_CASA: '' });
+  const match = mapFcfMatch(dto, 3);
+
+  assert.equal(match.homeTeam.crest, undefined);
+});
+
 test('mapFcfMatch: null club id becomes undefined, never the string "null"', () => {
   const dto = buildFcfMatchDto({ CODCLUB_CASA: null, CODCLUB_FUERA: null });
   const match = mapFcfMatch(dto, 3);

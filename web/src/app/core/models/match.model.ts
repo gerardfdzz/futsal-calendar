@@ -14,6 +14,11 @@ export interface Venue {
   readonly longitude?: number;
 }
 
+export interface MatchScore {
+  readonly home: number;
+  readonly away: number;
+}
+
 export interface Match {
   readonly id: string;
   readonly round: number;
@@ -23,4 +28,5 @@ export interface Match {
   readonly venue?: Venue;
   readonly groupId: string;
   readonly status: MatchStatus;
+  readonly score?: MatchScore;
 }

@@ -1,14 +1,37 @@
 <div class="match-list-item">
   <div class="match-list-item__when">
     <span class="match-list-item__round">Jornada {{ match().round }}</span>
+    @if (showStatusBadge()) {
+      <app-status-badge [status]="match().status"></app-status-badge>
+    }
     <span class="match-list-item__date">{{ dayLabel() }} · {{ timeLabel() }}</span>
   </div>
 
   <div class="match-list-item__body">
     <p class="match-list-item__matchup">
-      <span [class.match-list-item__team--us]="isHome()">{{ match().homeTeam.name }}</span>
-      <span class="match-list-item__sep">vs</span>
-      <span [class.match-list-item__team--us]="!isHome()">{{ match().awayTeam.name }}</span>
+      <span class="match-list-item__side">
+        @if (match().homeTeam.crest; as crest) {
+          <img class="match-list-item__crest" [src]="crest" alt="" aria-hidden="true" (error)="hideCrest($event)" />
+        }
+        <span class="match-list-item__team-name" [class.match-list-item__team-name--us]="isHome()">{{
+          match().homeTeam.name
+        }}</span>
+      </span>
+
+      @if (match().score; as score) {
+        <span class="match-list-item__score">{{ score.home }} - {{ score.away }}</span>
+      } @else {
+        <span class="match-list-item__sep">vs</span>
+      }
+
+      <span class="match-list-item__side match-list-item__side--away">
+        <span class="match-list-item__team-name" [class.match-list-item__team-name--us]="!isHome()">{{
+          match().awayTeam.name
+        }}</span>
+        @if (match().awayTeam.crest; as crest) {
+          <img class="match-list-item__crest" [src]="crest" alt="" aria-hidden="true" (error)="hideCrest($event)" />
+        }
+      </span>
     </p>
     @if (match().venue; as venue) {
       <p class="match-list-item__venue">

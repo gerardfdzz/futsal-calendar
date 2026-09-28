@@ -7,6 +7,15 @@
 
   <div class="next-match-hero__teams">
     <div class="next-match-hero__team">
+      @if (match().homeTeam.crest; as crest) {
+        <img
+          class="next-match-hero__crest"
+          [src]="crest"
+          alt=""
+          aria-hidden="true"
+          (error)="hideCrest($event)"
+        />
+      }
       <span class="next-match-hero__name" [class.next-match-hero__name--us]="isHome()">{{
         match().homeTeam.name
       }}</span>
@@ -15,6 +24,15 @@
     <span class="next-match-hero__vs">vs</span>
 
     <div class="next-match-hero__team next-match-hero__team--away">
+      @if (match().awayTeam.crest; as crest) {
+        <img
+          class="next-match-hero__crest"
+          [src]="crest"
+          alt=""
+          aria-hidden="true"
+          (error)="hideCrest($event)"
+        />
+      }
       <span class="next-match-hero__name" [class.next-match-hero__name--us]="!isHome()">{{
         match().awayTeam.name
       }}</span>

@@ -39,16 +39,28 @@
   &__team {
     display: flex;
     align-items: center;
+    gap: var(--space-sm);
     flex: 1;
     min-width: 0;
+  }
+
+  &__team--away {
+    flex-direction: row-reverse;
   }
 
   &__team--away &__name {
     text-align: right;
   }
 
+  &__crest {
+    flex-shrink: 0;
+    width: 32px;
+    height: 32px;
+    object-fit: contain;
+  }
+
   &__name {
-    width: 100%;
+    flex: 1;
     min-width: 0;
     display: -webkit-box;
     -webkit-line-clamp: 2;

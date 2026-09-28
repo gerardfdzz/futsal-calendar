@@ -8,6 +8,17 @@
       <h1 class="team-calendar__name">{{ teamName() ?? 'Equip' }}</h1>
     </header>
 
+    @if (pastMatches().length > 0) {
+      <section class="team-calendar__section">
+        <h2 class="team-calendar__section-title">Partits jugats</h2>
+        <div class="team-calendar__list">
+          @for (match of pastMatches(); track match.id) {
+            <app-match-list-item [match]="match" [teamId]="teamId"></app-match-list-item>
+          }
+        </div>
+      </section>
+    }
+
     <section class="team-calendar__section">
       <h2 class="team-calendar__section-title">Pròxim partit</h2>
       @if (nextMatch(); as match) {

@@ -16,4 +16,5 @@ export interface Group {
 export interface TeamOption {
   readonly id: string;
   readonly name: string;
+  readonly crest?: string;
 }
