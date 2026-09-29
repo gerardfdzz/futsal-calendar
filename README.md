@@ -4,7 +4,7 @@ Sync a Catalan Futsal Federation (FCF) team's matches to a subscribed calendar (
 
 Node/TypeScript backend on Vercel serverless functions + Angular 17 frontend to pick a team and get the subscription URL.
 
-**Status: working end to end.** Deployed at `partitsalcalendari.com`, with a real subscription verified on an iPhone. 171 tests, `tsc --strict` with no `any`.
+**Status: working end to end.** Deployed at `partitsalcalendari.com`, with a real subscription verified on an iPhone. 190 tests, `tsc --strict` with no `any`.
 
 ## How it works
 
@@ -41,7 +41,7 @@ api/
   groups/[grupId]/teams.ts
   matches/[groupId]/[teamId].ts         JSON (consumed by the frontend)
 src/
-  domain/           team.ts, venue.ts, match-status.ts, match.ts, competition-catalog.ts
+  domain/           team.ts, venue.ts, match-status.ts, match.ts, match-score.ts, competition-catalog.ts
   shared/           timezone.ts
   federation/
     federation-provider.ts, competition-catalog-provider.ts
@@ -104,7 +104,7 @@ None is required — the app works with its defaults. Set them in Vercel (Projec
 
 ```bash
 npm run typecheck   # tsc --noEmit, TypeScript strict, no any
-npm test            # 171 tests, node:test via tsx
+npm test            # 190 tests, node:test via tsx
 npm run smoke:fcf    # real call to the FCF — prints matches for a real group
 npm run smoke:ics    # generates a real .ics for a team and writes it to disk
 ```
