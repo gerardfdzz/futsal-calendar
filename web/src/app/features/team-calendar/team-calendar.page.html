@@ -5,13 +5,19 @@
     <p class="team-calendar__error">{{ error() }}</p>
   } @else {
     <header class="team-calendar__header">
+      @if (teamCrest(); as crest) {
+        <img class="team-calendar__crest" [src]="crest" alt="" aria-hidden="true" (error)="hideCrest($event)" />
+      }
       <h1 class="team-calendar__name">{{ teamName() ?? 'Equip' }}</h1>
+      @if (groupContext(); as ctx) {
+        <p class="team-calendar__breadcrumb">{{ ctx.discipline.name }} · {{ ctx.competition.name }} · {{ ctx.group.name }}</p>
+      }
     </header>
 
     @if (pastMatches().length > 0) {
       <section class="team-calendar__section">
         <h2 class="team-calendar__section-title">Partits jugats</h2>
-        <div class="team-calendar__list">
+        <div class="team-calendar__list team-calendar__list--cards">
           @for (match of pastMatches(); track match.id) {
             <app-match-list-item [match]="match" [teamId]="teamId"></app-match-list-item>
           }
@@ -20,24 +26,17 @@
     }
 
     <section class="team-calendar__section">
-      <h2 class="team-calendar__section-title">Pròxim partit</h2>
-      @if (nextMatch(); as match) {
-        <app-next-match-hero [match]="match" [teamId]="teamId"></app-next-match-hero>
+      <h2 class="team-calendar__section-title">Pròxims partits</h2>
+      @if (upcomingMatches().length > 0) {
+        <div class="team-calendar__list team-calendar__list--cards">
+          @for (match of upcomingMatches(); track match.id) {
+            <app-next-match-hero [match]="match" [teamId]="teamId"></app-next-match-hero>
+          }
+        </div>
       } @else {
         <p class="team-calendar__empty">No hi ha cap partit programat de moment.</p>
       }
     </section>
-
-    @if (laterMatches().length > 0) {
-      <section class="team-calendar__section">
-        <h2 class="team-calendar__section-title">Pròxims partits</h2>
-        <div class="team-calendar__list">
-          @for (match of laterMatches(); track match.id) {
-            <app-match-list-item [match]="match" [teamId]="teamId"></app-match-list-item>
-          }
-        </div>
-      </section>
-    }
 
     <section class="team-calendar__section">
       <app-add-to-calendar-button [groupId]="groupId" [teamId]="teamId"></app-add-to-calendar-button>

@@ -1,4 +1,4 @@
-<div class="team-selector">
+<div class="team-selector" [class.team-selector--wide]="step() !== 'discipline'">
   <header class="team-selector__header">
     @if (step() !== 'discipline') {
       <button type="button" class="team-selector__back" (click)="goBack()" aria-label="Enrere">
@@ -26,6 +26,7 @@
       @case ('competition') {
         <app-selector-step-list
           [items]="competitions()"
+          layout="grid"
           emptyLabel="No hi ha competicions per a aquesta disciplina."
           (select)="selectCompetition($event.id)"
         ></app-selector-step-list>
@@ -33,6 +34,7 @@
       @case ('group') {
         <app-selector-step-list
           [items]="groups()"
+          layout="grid"
           emptyLabel="No hi ha grups per a aquesta competició."
           (select)="selectGroup($event.id)"
         ></app-selector-step-list>
@@ -40,6 +42,7 @@
       @case ('team') {
         <app-selector-step-list
           [items]="teams()"
+          layout="grid"
           emptyLabel="No hi ha equips per a aquest grup."
           (select)="selectTeam($event)"
         ></app-selector-step-list>

@@ -26,6 +26,12 @@
     text-align: center;
   }
 
+  &__crest {
+    width: 64px;
+    height: 64px;
+    object-fit: contain;
+  }
+
   &__name {
     margin: 0;
     font-family: var(--font-headline);
@@ -33,6 +39,12 @@
     font-weight: 700;
     text-transform: uppercase;
     color: var(--color-on-background);
+  }
+
+  &__breadcrumb {
+    margin: 0;
+    font-size: 14px;
+    color: var(--color-text-muted);
   }
 
   &__section-title {
@@ -46,5 +58,9 @@
   &__list {
     display: flex;
     flex-direction: column;
+
+    &--cards {
+      gap: var(--space-md);
+    }
   }
 }

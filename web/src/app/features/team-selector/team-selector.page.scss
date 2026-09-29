@@ -6,6 +6,12 @@
   margin: 0 auto;
   padding: var(--space-lg) var(--space-container-margin);
 
+  &--wide {
+    @media (min-width: 768px) {
+      max-width: 960px;
+    }
+  }
+
   &__header {
     display: flex;
     align-items: center;

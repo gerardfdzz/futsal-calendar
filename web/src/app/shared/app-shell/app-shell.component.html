@@ -1,6 +1,22 @@
 <div class="app-shell">
   <header class="app-shell__header">
-    <a routerLink="/" class="app-shell__brand">CATFUTBOL</a>
+    <a routerLink="/" class="app-shell__brand" aria-label="Pàgina d'inici">
+      <svg class="app-shell__logo" viewBox="0 0 240 60" aria-hidden="true" focusable="false">
+        <rect width="46" height="46" rx="13" fill="#D91424" y="7" x="7" />
+        <path d="M15 17H45" stroke="#FFC700" stroke-width="3" stroke-linecap="round" />
+        <path d="M15 25H45" stroke="#FFC700" stroke-width="3" stroke-linecap="round" />
+        <path d="M15 33H45" stroke="#FFC700" stroke-width="3" stroke-linecap="round" />
+        <path d="M15 41H45" stroke="#FFC700" stroke-width="3" stroke-linecap="round" />
+        <circle cx="30" cy="30" r="11" fill="#FFFFFF" stroke="#121C3B" stroke-width="1.8" />
+        <polygon points="30,26 33.5,28.5 32,32.5 28,32.5 26.5,28.5" fill="#121C3B" />
+        <polygon points="28.5,20.5 31.5,20.5 32.5,22.5 30,24 27.5,22.5" fill="#121C3B" />
+        <polygon points="23,34 25.5,33.5 26.5,36 24.5,38.5 22,37" fill="#121C3B" />
+        <polygon points="34.5,33.5 37,34 38,37 35.5,38.5 33.5,36" fill="#121C3B" />
+        <polygon points="20.5,27.5 22.5,25.5 24.5,27 23.5,29.5 21,29.5" fill="#121C3B" />
+        <polygon points="37.5,25.5 39.5,27.5 39,29.5 36.5,29.5 35.5,27" fill="#121C3B" />
+        <text x="64" y="38" font-family="'Space Grotesk', system-ui, sans-serif" font-size="25" font-weight="900" fill="#121C3B" letter-spacing="-0.5">CAT<tspan fill="#D91424">FUTBOL</tspan></text>
+      </svg>
+    </a>
   </header>
   <main class="app-shell__main">
     <ng-content></ng-content>

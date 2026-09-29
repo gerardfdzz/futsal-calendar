@@ -1,7 +1,7 @@
 @if (items().length === 0) {
   <p class="selector-step-list__empty">{{ emptyLabel() }}</p>
 } @else {
-  <div class="selector-step-list">
+  <div class="selector-step-list" [class.selector-step-list--grid]="layout() === 'grid'">
     @for (item of items(); track item.id) {
       <button type="button" class="selector-step-list__card" (click)="select.emit(item)">
         <span class="selector-step-list__icon">

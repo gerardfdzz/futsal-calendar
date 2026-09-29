@@ -2,9 +2,12 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { Component, computed, effect, inject, signal } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { TeamMatchesService } from '../../core/services/team-matches.service';
+import { CompetitionCatalogService } from '../../core/services/competition-catalog.service';
 import { SeoService } from '../../core/services/seo.service';
 import { SITE_BASE_URL } from '../../core/seo.config';
 import type { Match } from '../../core/models/match.model';
+import type { GroupContext } from '../../core/models/catalog.model';
+import { hideBrokenCrest } from '../../core/utils/crest';
 import { NextMatchHeroComponent } from './next-match-hero/next-match-hero.component';
 import { MatchListItemComponent } from './match-list-item/match-list-item.component';
 import { AddToCalendarButtonComponent } from '../../shared/add-to-calendar-button/add-to-calendar-button.component';
@@ -23,6 +26,7 @@ const SCHEMA_EVENT_STATUS: Readonly<Partial<Record<Match['status'], string>>> = 
 })
 export class TeamCalendarPage {
   private readonly matchesService = inject(TeamMatchesService);
+  private readonly catalogService = inject(CompetitionCatalogService);
   private readonly route = inject(ActivatedRoute);
   private readonly seo = inject(SeoService);
 
@@ -34,7 +38,15 @@ export class TeamCalendarPage {
   readonly loading = signal(true);
   readonly error = signal<string | undefined>(undefined);
 
+  // Best-effort, secondary info: the group/competition/discipline breadcrumb. Its own
+  // service call can 404 (a group outside the crawled catalog) or fail outright without
+  // blocking the page — the matches themselves are the primary content.
+  readonly groupContext = signal<GroupContext | undefined>(undefined);
+
   readonly teamName = computed(() => this.pickOurTeam()?.name);
+  readonly teamCrest = computed(() => this.pickOurTeam()?.crest);
+
+  readonly hideCrest = hideBrokenCrest;
 
   readonly upcomingMatches = computed(() => {
     const now = Date.now();
@@ -44,7 +56,6 @@ export class TeamCalendarPage {
   });
 
   readonly nextMatch = computed(() => this.upcomingMatches()[0]);
-  readonly laterMatches = computed(() => this.upcomingMatches().slice(1));
 
   readonly pastMatches = computed(() => {
     const now = Date.now();
@@ -69,6 +80,13 @@ export class TeamCalendarPage {
         this.loading.set(false);
         this.error.set(this.buildErrorMessage(err));
       },
+    });
+
+    this.catalogService.getGroupContext(this.groupId).subscribe({
+      next: (context) => this.groupContext.set(context),
+      // Not found (404) or the federation being unreachable (502) both just mean no
+      // breadcrumb — never worth surfacing as a page-level error.
+      error: () => this.groupContext.set(undefined),
     });
 
     effect(() => {

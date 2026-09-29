@@ -3,9 +3,11 @@
   flex-direction: column;
   gap: var(--space-lg);
   padding: var(--space-lg);
-  background: var(--color-surface-container-low);
+  background: var(--color-surface);
   border: 1px solid var(--color-surface-variant);
-  border-radius: var(--radius-xl);
+  border-left: 4px solid var(--color-primary);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-card);
 
   &__meta {
     display: flex;
@@ -28,6 +30,26 @@
     font-size: 14px;
     font-weight: 600;
     color: var(--color-on-surface);
+  }
+
+  &__home-away {
+    display: inline-flex;
+    align-items: center;
+    padding: 2px var(--space-sm);
+    border-radius: var(--radius-full);
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.03em;
+
+    &--home {
+      background: var(--color-tertiary);
+      color: var(--color-on-tertiary);
+    }
+
+    &--away {
+      background: var(--color-secondary-container);
+      color: var(--color-secondary);
+    }
   }
 
   &__teams {

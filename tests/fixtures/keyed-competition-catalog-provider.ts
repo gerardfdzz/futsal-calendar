@@ -12,16 +12,19 @@ export class KeyedCompetitionCatalogProvider implements CompetitionCatalogProvid
 
   constructor(
     private readonly data: {
+      disciplines?: Discipline[];
       competitionsByDisciplinaId?: ReadonlyMap<string, Competition[]>;
       groupsByCompeticioId?: ReadonlyMap<string, Group[]>;
       teamsByGrupId?: ReadonlyMap<string, TeamOption[]>;
-      errorOn?: { method: string; arg: string };
+      /** arg omitted means "throw for this method regardless of which id it's called with". */
+      errorOn?: { method: string; arg?: string };
     },
   ) {}
 
   async listDisciplines(): Promise<Discipline[]> {
     this.calls.push({ method: 'listDisciplines', args: [] });
-    return [];
+    this.throwIfConfigured('listDisciplines', '');
+    return this.data.disciplines ?? [];
   }
 
   async listCompetitions(disciplinaId: string, _temporada: string): Promise<Competition[]> {
@@ -43,7 +46,8 @@ export class KeyedCompetitionCatalogProvider implements CompetitionCatalogProvid
   }
 
   private throwIfConfigured(method: string, arg: string): void {
-    if (this.data.errorOn?.method === method && this.data.errorOn.arg === arg) {
+    const errorOn = this.data.errorOn;
+    if (errorOn?.method === method && (errorOn.arg === undefined || errorOn.arg === arg)) {
       throw new Error(`simulated failure for ${method}("${arg}")`);
     }
   }

@@ -1,7 +1,16 @@
 <div class="next-match-hero">
   <div class="next-match-hero__meta">
     <span class="next-match-hero__round">Jornada {{ match().round }}</span>
-    <app-status-badge [status]="match().status"></app-status-badge>
+    @if (match().status === 'scheduled') {
+      <span
+        class="next-match-hero__home-away"
+        [class.next-match-hero__home-away--home]="isHome()"
+        [class.next-match-hero__home-away--away]="!isHome()"
+        >{{ isHome() ? 'CASA' : 'FORA' }}</span
+      >
+    } @else {
+      <app-status-badge [status]="match().status"></app-status-badge>
+    }
     <span class="next-match-hero__when">{{ dayLabel() }} · {{ timeLabel() }}</span>
   </div>
 

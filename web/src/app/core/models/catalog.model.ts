@@ -18,3 +18,9 @@ export interface TeamOption {
   readonly name: string;
   readonly crest?: string;
 }
+
+export interface GroupContext {
+  readonly discipline: Discipline;
+  readonly competition: Competition;
+  readonly group: Group;
+}
