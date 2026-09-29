@@ -1,11 +1,18 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, computed, inject, signal } from '@angular/core';
+import { Component, computed, effect, inject, signal } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { TeamMatchesService } from '../../core/services/team-matches.service';
+import { SeoService } from '../../core/services/seo.service';
+import { SITE_BASE_URL } from '../../core/seo.config';
 import type { Match } from '../../core/models/match.model';
 import { NextMatchHeroComponent } from './next-match-hero/next-match-hero.component';
 import { MatchListItemComponent } from './match-list-item/match-list-item.component';
 import { AddToCalendarButtonComponent } from '../../shared/add-to-calendar-button/add-to-calendar-button.component';
+
+const SCHEMA_EVENT_STATUS: Readonly<Partial<Record<Match['status'], string>>> = {
+  postponed: 'https://schema.org/EventPostponed',
+  cancelled: 'https://schema.org/EventCancelled',
+};
 
 @Component({
   selector: 'app-team-calendar-page',
@@ -17,9 +24,11 @@ import { AddToCalendarButtonComponent } from '../../shared/add-to-calendar-butto
 export class TeamCalendarPage {
   private readonly matchesService = inject(TeamMatchesService);
   private readonly route = inject(ActivatedRoute);
+  private readonly seo = inject(SeoService);
 
   readonly groupId = this.route.snapshot.paramMap.get('groupId') ?? '';
   readonly teamId = this.route.snapshot.paramMap.get('teamId') ?? '';
+  private readonly pageUrl = `${SITE_BASE_URL}/equip/${this.groupId}/${this.teamId}`;
 
   readonly matches = signal<Match[]>([]);
   readonly loading = signal(true);
@@ -45,6 +54,12 @@ export class TeamCalendarPage {
   });
 
   constructor() {
+    this.seo.update({
+      title: 'Calendari de partits · Partits al Calendari',
+      description: "Sincronitza el calendari d'aquest equip de la FCF amb el teu Apple Calendar o Google Calendar.",
+      url: this.pageUrl,
+    });
+
     this.matchesService.getTeamMatches(this.groupId, this.teamId).subscribe({
       next: (matches) => {
         this.matches.set(matches);
@@ -55,6 +70,53 @@ export class TeamCalendarPage {
         this.error.set(this.buildErrorMessage(err));
       },
     });
+
+    effect(() => {
+      const teamName = this.teamName();
+      if (!teamName) {
+        return;
+      }
+      this.seo.update({
+        title: `${teamName} · Calendari FCF | Partits al Calendari`,
+        description: `Calendari i pròxims partits de ${teamName} (Federació Catalana de Futbol). Sincronitza'l amb Apple Calendar o Google Calendar sense haver de descarregar res.`,
+        url: this.pageUrl,
+      });
+    });
+
+    effect(() => {
+      const next = this.nextMatch();
+      const teamName = this.teamName();
+      if (!next || !teamName) {
+        this.seo.clearJsonLd();
+        return;
+      }
+      this.seo.setJsonLd(this.buildNextMatchJsonLd(next));
+    });
+  }
+
+  private buildNextMatchJsonLd(match: Match): Record<string, unknown> {
+    const eventStatus = SCHEMA_EVENT_STATUS[match.status];
+    return {
+      '@context': 'https://schema.org',
+      '@type': 'SportsEvent',
+      name: `${match.homeTeam.name} - ${match.awayTeam.name}`,
+      startDate: match.startsAt,
+      url: this.pageUrl,
+      ...(eventStatus ? { eventStatus } : {}),
+      ...(match.venue
+        ? {
+            location: {
+              '@type': 'Place',
+              name: match.venue.name,
+              ...(match.venue.latitude !== undefined && match.venue.longitude !== undefined
+                ? { geo: { '@type': 'GeoCoordinates', latitude: match.venue.latitude, longitude: match.venue.longitude } }
+                : {}),
+            },
+          }
+        : {}),
+      homeTeam: { '@type': 'SportsTeam', name: match.homeTeam.name },
+      awayTeam: { '@type': 'SportsTeam', name: match.awayTeam.name },
+    };
   }
 
   private buildErrorMessage(err: HttpErrorResponse): string {

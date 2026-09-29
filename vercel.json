@@ -2,6 +2,18 @@
   "buildCommand": "cd web && npm install && npm run build",
   "outputDirectory": "web/dist/web/browser",
   "rewrites": [
+    { "source": "/sitemap.xml", "destination": "/api/sitemap" },
+    {
+      "source": "/equip/:groupId/:teamId",
+      "has": [
+        {
+          "type": "header",
+          "key": "user-agent",
+          "value": "(Googlebot|googlebot|bingbot|Bingbot|Slurp|DuckDuckBot|Baiduspider|YandexBot|facebookexternalhit|Facebot|Twitterbot|LinkedInBot|WhatsApp|TelegramBot|Discordbot|Applebot|SkypeUriPreview|Slackbot|redditbot|vkShare|Pinterest|BitlyBot|ia_archiver)"
+        }
+      ],
+      "destination": "/api/team-page?groupId=:groupId&teamId=:teamId"
+    },
     { "source": "/((?!api/).*)", "destination": "/index.html" }
   ],
   "headers": [

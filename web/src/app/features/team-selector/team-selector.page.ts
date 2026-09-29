@@ -1,6 +1,8 @@
 import { Component, inject, signal, computed } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { CompetitionCatalogService } from '../../core/services/competition-catalog.service';
+import { SeoService } from '../../core/services/seo.service';
+import { SITE_BASE_URL } from '../../core/seo.config';
 import { SelectorStepListComponent, type SelectableOption } from '../../shared/selector-step-list/selector-step-list.component';
 import type { Competition, Discipline, Group, TeamOption } from '../../core/models/catalog.model';
 
@@ -17,6 +19,7 @@ export class TeamSelectorPage {
   private readonly catalog = inject(CompetitionCatalogService);
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
+  private readonly seo = inject(SeoService);
 
   readonly disciplines = signal<Discipline[]>([]);
   readonly competitions = signal<Competition[]>([]);
@@ -51,6 +54,13 @@ export class TeamSelectorPage {
   });
 
   constructor() {
+    this.seo.update({
+      title: 'Partits al Calendari — Sincronitza el teu equip de la FCF',
+      description:
+        "Sincronitza automàticament els partits del teu equip de la Federació Catalana de Futbol (FCF) amb el teu Apple Calendar o Google Calendar. Troba el teu equip, qualsevol disciplina o categoria.",
+      url: `${SITE_BASE_URL}/`,
+    });
+
     const params = this.route.snapshot.queryParamMap;
     const disciplinaId = params.get('disciplinaId') ?? undefined;
     const competicioId = params.get('competicioId') ?? undefined;

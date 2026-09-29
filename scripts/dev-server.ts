@@ -3,6 +3,8 @@ import { FcfFederationProvider } from '../src/federation/fcf/fcf.provider.js';
 import { FcfCompetitionCatalogProvider } from '../src/federation/fcf/fcf-competition-catalog.provider.js';
 import { handleCalendarRequest } from '../src/http/calendar-http-handler.js';
 import { handleTeamMatchesRequest } from '../src/http/matches-http-handler.js';
+import { handleTeamPageRequest } from '../src/http/team-page-http-handler.js';
+import { handleSitemapRequest } from '../src/http/sitemap-http-handler.js';
 import {
   handleCompetitionsRequest,
   handleDisciplinesRequest,
@@ -35,6 +37,8 @@ function route(req: IncomingMessage): Handler {
     if (segments[1] === 'groups' && segments[3] === 'teams') return serveTeams;
     if (segments[1] === 'competitions' && segments[3] === 'groups') return serveGroups;
     if (segments[1] === 'competitions') return serveCompetitions;
+    if (segments[1] === 'team-page') return serveTeamPage;
+    if (segments[1] === 'sitemap') return serveSitemap;
   }
   return serveNotFound;
 }
@@ -88,6 +92,18 @@ const serveTeams: Handler = async (req, res) => {
   res.end(response.body);
 };
 
+const serveTeamPage: Handler = async (req, res) => {
+  const response = await handleTeamPageRequest(matchProvider, catalog, { method: req.method, url: req.url ?? '' });
+  res.writeHead(response.status, response.headers);
+  res.end(response.body);
+};
+
+const serveSitemap: Handler = async (req, res) => {
+  const response = await handleSitemapRequest(catalog, { method: req.method, url: req.url ?? '' });
+  res.writeHead(response.status, response.headers);
+  res.end(response.body);
+};
+
 const serveNotFound: Handler = async (_req, res) => {
   res.writeHead(404, { 'Content-Type': 'text/plain; charset=utf-8' });
   res.end('Not Found');
@@ -98,6 +114,8 @@ server.listen(port, () => {
   console.log(`Try: http://localhost:${port}/api/calendar/58162580/54755993.ics`);
   console.log(`Try: http://localhost:${port}/api/matches/58162580/54755993`);
   console.log(`Try: http://localhost:${port}/api/disciplines`);
+  console.log(`Try: http://localhost:${port}/api/team-page?groupId=58162580&teamId=54755993`);
+  console.log(`Try: http://localhost:${port}/api/sitemap (slow on first hit — crawls the FCF catalog)`);
 });
 
 function firstHeaderValue(value: string | string[] | undefined): string | undefined {

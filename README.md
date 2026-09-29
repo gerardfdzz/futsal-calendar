@@ -4,7 +4,7 @@ Sync a Catalan Futsal Federation (FCF) team's matches to a subscribed calendar (
 
 Node/TypeScript backend on Vercel serverless functions + Angular 17 frontend to pick a team and get the subscription URL.
 
-**Status: working end to end.** Deployed at `partitsalcalendari.com`, with a real subscription verified on an iPhone. 190 tests, `tsc --strict` with no `any`.
+**Status: working end to end.** Deployed at `partitsalcalendari.com`, with a real subscription verified on an iPhone. 227 tests, `tsc --strict` with no `any`.
 
 ## How it works
 
@@ -34,35 +34,41 @@ General principle: the FCF stays completely isolated behind `FederationProvider`
 
 ```
 api/
-  calendar/[groupId]/[teamId].ts        ICS
-  disciplines.ts
-  competitions.ts
-  competitions/[competicioId]/groups.ts
-  groups/[grupId]/teams.ts
-  matches/[groupId]/[teamId].ts         JSON (consumed by the frontend)
+├── calendar/[groupId]/[teamId].ts        ICS
+├── disciplines.ts
+├── competitions.ts
+├── competitions/[competicioId]/groups.ts
+├── groups/[grupId]/teams.ts
+├── matches/[groupId]/[teamId].ts         JSON (consumed by the frontend)
+├── team-page.ts                          bot-only HTML snapshot (see "SEO" below)
+└── sitemap.ts                            dynamic /sitemap.xml
 src/
-  domain/           team.ts, venue.ts, match-status.ts, match.ts, match-score.ts, competition-catalog.ts
-  shared/           timezone.ts
-  federation/
-    federation-provider.ts, competition-catalog-provider.ts
-    fcf/            fcf.provider.ts, fcf.mapper.ts, fcf-date.ts, fcf-bye.ts, fcf-status.mapper.ts,
-                     fcf-http-client.ts, fcf-catalog-config.ts, fcf-competition-catalog.provider.ts,
-                     fcf-catalog.mapper.ts, fcf-logger.ts, fcf.types.ts, fcf-catalog.types.ts
-  matches/          match-filter.ts, team-matches.service.ts
-  calendar/         ics-generator.ts, ics-config.ts, ics-text.ts, ics-timezone.ts, ics-status.mapper.ts,
-                     calendar.service.ts, match-content-hash.ts
-  http/             calendar-route.ts, calendar-http-handler.ts, catalog-route.ts,
-                     catalog-http-handler.ts, matches-http-handler.ts, http-logger.ts
+├── domain/         team.ts, venue.ts, match-status.ts, match.ts, match-score.ts, competition-catalog.ts
+├── shared/         timezone.ts, p-map-limit.ts
+├── federation/
+│   ├── federation-provider.ts, competition-catalog-provider.ts
+│   └── fcf/        fcf.provider.ts, fcf.mapper.ts, fcf-date.ts, fcf-bye.ts, fcf-status.mapper.ts,
+│                   fcf-http-client.ts, fcf-catalog-config.ts, fcf-competition-catalog.provider.ts,
+│                   fcf-catalog.mapper.ts, fcf-logger.ts, fcf.types.ts, fcf-catalog.types.ts
+├── matches/        match-filter.ts, team-matches.service.ts
+├── calendar/       ics-generator.ts, ics-config.ts, ics-text.ts, ics-timezone.ts, ics-status.mapper.ts,
+│                   calendar.service.ts, match-content-hash.ts
+├── seo/            html-escape.ts, team-page-html.ts (bot-facing HTML + SportsEvent JSON-LD)
+├── sitemap/        sitemap-xml.ts, sitemap-crawler.ts (walks the FCF catalog for team pages)
+└── http/           calendar-route.ts, calendar-http-handler.ts, catalog-route.ts,
+                    catalog-http-handler.ts, matches-http-handler.ts, team-page-http-handler.ts,
+                    sitemap-http-handler.ts, http-logger.ts
 scripts/            run-tests.mjs, smoke-fcf.ts, smoke-ics.ts, dev-server.ts
 tests/              same structure as src/, one *.test.ts per module
 web/
-  src/app/
-    core/           models/, services/, utils/
-    shared/         app-shell/, selector-step-list/, status-badge/, add-to-calendar-button/
-    features/
-      team-selector/team-selector.page.{ts,html,scss}
-      team-calendar/team-calendar.page.{ts,html,scss}, next-match-hero/, match-list-item/
-  src/styles/_tokens.scss, src/styles.scss
+└── src/
+    ├── app/
+    │   ├── core/       models/, services/ (incl. seo.service.ts), utils/, seo.config.ts
+    │   ├── shared/     app-shell/, selector-step-list/, status-badge/, add-to-calendar-button/
+    │   └── features/
+    │       ├── team-selector/team-selector.page.{ts,html,scss}
+    │       └── team-calendar/team-calendar.page.{ts,html,scss}, next-match-hero/, match-list-item/
+    └── styles/_tokens.scss, styles.scss
 ```
 
 ## Running locally
@@ -104,7 +110,7 @@ None is required — the app works with its defaults. Set them in Vercel (Projec
 
 ```bash
 npm run typecheck   # tsc --noEmit, TypeScript strict, no any
-npm test            # 190 tests, node:test via tsx
+npm test            # 227 tests, node:test via tsx
 npm run smoke:fcf    # real call to the FCF — prints matches for a real group
 npm run smoke:ics    # generates a real .ics for a team and writes it to disk
 ```
@@ -159,11 +165,19 @@ The backend script that runs `tsc --noEmit` is called `typecheck`, not `build` �
 
 **Visual design**: the UI's look and feel (colors, typography, spacing, layout) was designed with [Google Stitch](https://stitch.withgoogle.com/), Google's AI-assisted UI design tool, starting from this project: https://stitch.withgoogle.com/projects/6523744783108261217. The resulting design tokens were ported by hand into plain CSS custom properties in `web/src/styles/_tokens.scss` — no runtime dependency on Stitch.
 
+**SEO — dynamic `Title`/`Meta`/canonical/JSON-LD, no static route titles**: `SeoService` (`web/src/app/core/services/seo.service.ts`) updates `<title>`, description, Open Graph/Twitter tags, the canonical `<link>`, and a `SportsEvent` JSON-LD block from each page's own component, once real data (team name, next match) is available. Angular Router's static `title:` route property was tried first and removed: it fired on every route identically and overwrote the good default title from `index.html` with a generic one, for every team page alike — actively worse than doing nothing.
+
+**SEO for bots — dynamic rendering via a Vercel header-matched rewrite, not full SSR**: the Angular app is CSR-only (no Angular Universal), so anything `SeoService` sets is invisible to bots that don't execute JS (link-preview scrapers for WhatsApp, X, LinkedIn, Slack, iMessage — Googlebot itself does execute JS and doesn't need this). Rather than migrating to Angular SSR, `vercel.json` rewrites `/equip/:groupId/:teamId` to `api/team-page.ts` **only** when the request's `user-agent` header matches a known bot pattern (Vercel's `has` rewrite condition); everyone else still gets the normal SPA. `team-page-http-handler.ts` renders a small, real HTML page (title, description, canonical, OG/Twitter tags, the same `SportsEvent` JSON-LD, an `<h1>`, and the team's upcoming matches) from the same `FederationProvider`/`CompetitionCatalogProvider` the rest of the backend already uses. This is Google's documented "dynamic rendering" pattern, not cloaking, because the bot-served content matches what a user would see once the SPA finishes loading — it's a much smaller change than an SSR migration and can be replaced by one later without touching the rest of the app.
+
+**Sitemap scoped to 2 of 7 FCF disciplines, crawled and cached, not persisted**: `sitemap-crawler.ts` walks the FCF's own discipline → competition → group → team catalog to list every team page. Measured live against production before building it: all 7 disciplines together are ~460+ groups just for temporada 22's futsal disciplines alone, and other disciplines (Futbol 11, Futbol 7, Futbol 5, Futbol Platja) push that much higher. `SITEMAP_DISCIPLINA_IDS` deliberately limits the crawl to Futbol Sala and Futbol Sala Femení — the disciplines this app is actually built for — with bounded concurrency (`pMapLimit`, 6 at a time) and best-effort skip-on-error per branch (one bad competition or group is logged and skipped, matching `FcfFederationProvider`'s existing philosophy of not letting one bad branch abort the whole request), **except** when every configured discipline fails at the top level (e.g. the FCF is fully down): that specific case throws instead of silently returning an empty page list, precisely so the cache below sees it as a failed crawl and keeps serving the last known-good sitemap instead of overwriting it with an empty one. The result is cached in memory for 12h (`sitemap-http-handler.ts`), with the last successful crawl kept and served if a later crawl fails, and a bare homepage-only fallback if there's never been a successful crawl at all. Trade-off accepted deliberately: a Vercel cold start resets this cache (no persistence, matching the project's "no DB for now" stance elsewhere), so the first request after a cold start pays the full crawl cost — mitigated by the generous `maxDuration: 60` on that function and the 6h HTTP `Cache-Control` telling well-behaved crawlers not to hit it too often either.
+
 ## What was intentionally left out
 
 - Cache/cron/persistence beyond `Cache-Control` + ETag (see "Design decisions").
 - A database.
 - Authentication, favorites, user profile, live (in-progress) results — no reliable data source and no clear need for the MVP.
+- A full Angular SSR/Universal migration — the bot-only dynamic-rendering rewrite (see "Design decisions") covers the actual need (link previews, non-JS crawlers) at a fraction of the complexity; SSR remains an option later if a real reason shows up (e.g. Core Web Vitals on first paint).
+- Sitemap coverage for the other 5 FCF disciplines (Futbol 11/7/5, Futbol Platja) — this app targets futsal; adding them is a one-line change to `SITEMAP_DISCIPLINA_IDS` if the app ever expands.
 
 ## Open questions
 
@@ -172,3 +186,4 @@ The backend script that runs `tsc --noEmit` is called `typecheck`, not `build` �
 3. Human-readable group name (e.g. "TGN Gr. 14") — the FCF doesn't expose it outside the competition page, which this app doesn't scrape.
 4. `404` or `200` with an empty calendar for a team with no matches? It's a product decision, not a technical one; right now it's `200` on purpose (see `calendar.service.ts`).
 5. Is the current `max-age` (30–60 min) reasonable? An initial choice made without real request-volume data; it's a named constant in each handler, easy to adjust.
+6. The bot User-Agent pattern in `vercel.json`'s dynamic-rendering rewrite covers the well-known crawlers (WhatsApp, Twitter/X, LinkedIn, Slack, Facebook, iMessage, Googlebot, Bingbot); it should be revisited once real traffic shows which other bots actually request team pages.
