@@ -1,4 +1,5 @@
-import { Component, inject, signal, computed } from '@angular/core';
+import { Component, computed, effect, inject, signal } from '@angular/core';
+import { toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router } from '@angular/router';
 import { CompetitionCatalogService } from '../../core/services/competition-catalog.service';
 import { SeoService } from '../../core/services/seo.service';
@@ -21,24 +22,26 @@ export class TeamSelectorPage {
   private readonly router = inject(Router);
   private readonly seo = inject(SeoService);
 
+  private readonly paramMap = toSignal(this.route.paramMap, { initialValue: this.route.snapshot.paramMap });
+
+  readonly disciplinaId = computed(() => this.paramMap().get('disciplinaId') ?? undefined);
+  readonly competicioId = computed(() => this.paramMap().get('competicioId') ?? undefined);
+  readonly grupId = computed(() => this.paramMap().get('grupId') ?? undefined);
+
+  readonly step = computed<Step>(() => {
+    if (!this.disciplinaId()) return 'discipline';
+    if (!this.competicioId()) return 'competition';
+    if (!this.grupId()) return 'group';
+    return 'team';
+  });
+
   readonly disciplines = signal<Discipline[]>([]);
   readonly competitions = signal<Competition[]>([]);
   readonly groups = signal<Group[]>([]);
   readonly teams = signal<TeamOption[]>([]);
 
-  readonly selectedDisciplinaId = signal<string | undefined>(undefined);
-  readonly selectedCompeticioId = signal<string | undefined>(undefined);
-  readonly selectedGrupId = signal<string | undefined>(undefined);
-
   readonly loading = signal(false);
   readonly error = signal<string | undefined>(undefined);
-
-  readonly step = computed<Step>(() => {
-    if (!this.selectedDisciplinaId()) return 'discipline';
-    if (!this.selectedCompeticioId()) return 'competition';
-    if (!this.selectedGrupId()) return 'group';
-    return 'team';
-  });
 
   readonly title = computed(() => {
     switch (this.step()) {
@@ -61,88 +64,93 @@ export class TeamSelectorPage {
       url: `${SITE_BASE_URL}/`,
     });
 
-    const params = this.route.snapshot.queryParamMap;
-    const disciplinaId = params.get('disciplinaId') ?? undefined;
-    const competicioId = params.get('competicioId') ?? undefined;
-    const grupId = params.get('grupId') ?? undefined;
+    effect(() => {
+      const step = this.step();
+      this.error.set(undefined);
 
-    this.loadDisciplines();
-    if (disciplinaId) {
-      this.selectDiscipline(disciplinaId, { updateUrl: false });
-    }
-    if (disciplinaId && competicioId) {
-      this.selectCompetition(competicioId, { updateUrl: false });
-    }
-    if (disciplinaId && competicioId && grupId) {
-      this.selectGroup(grupId, { updateUrl: false });
-    }
+      switch (step) {
+        case 'discipline':
+          this.loading.set(true);
+          this.catalog.listDisciplines().subscribe({
+            next: (disciplines) => {
+              this.disciplines.set(disciplines);
+              this.loading.set(false);
+            },
+            error: () => {
+              this.loading.set(false);
+              this.error.set("No s'ha pogut carregar la llista de disciplines. Torna-ho a provar.");
+            },
+          });
+          break;
+
+        case 'competition': {
+          const disciplinaId = this.disciplinaId();
+          if (!disciplinaId) return;
+          this.loading.set(true);
+          this.catalog.listCompetitions(disciplinaId).subscribe({
+            next: (competitions) => {
+              this.competitions.set(competitions);
+              this.loading.set(false);
+            },
+            error: () => {
+              this.loading.set(false);
+              this.error.set("No s'han pogut carregar les competicions. Torna-ho a provar.");
+            },
+          });
+          break;
+        }
+
+        case 'group': {
+          const competicioId = this.competicioId();
+          if (!competicioId) return;
+          this.loading.set(true);
+          this.catalog.listGroups(competicioId).subscribe({
+            next: (groups) => {
+              this.groups.set(groups);
+              this.loading.set(false);
+            },
+            error: () => {
+              this.loading.set(false);
+              this.error.set("No s'han pogut carregar els grups. Torna-ho a provar.");
+            },
+          });
+          break;
+        }
+
+        case 'team': {
+          const grupId = this.grupId();
+          if (!grupId) return;
+          this.loading.set(true);
+          this.catalog.listTeams(grupId).subscribe({
+            next: (teams) => {
+              this.teams.set(teams);
+              this.loading.set(false);
+            },
+            error: () => {
+              this.loading.set(false);
+              this.error.set("No s'han pogut carregar els equips. Torna-ho a provar.");
+            },
+          });
+          break;
+        }
+      }
+    }, { allowSignalWrites: true });
   }
 
-  selectDiscipline(disciplinaId: string, opts: { updateUrl?: boolean } = {}): void {
-    this.selectedDisciplinaId.set(disciplinaId);
-    this.selectedCompeticioId.set(undefined);
-    this.selectedGrupId.set(undefined);
-    this.competitions.set([]);
-    this.groups.set([]);
-    this.teams.set([]);
-    this.syncUrl(opts.updateUrl !== false);
-
-    this.loading.set(true);
-    this.error.set(undefined);
-    this.catalog.listCompetitions(disciplinaId).subscribe({
-      next: (competitions) => {
-        this.competitions.set(competitions);
-        this.loading.set(false);
-      },
-      error: () => {
-        this.loading.set(false);
-        this.error.set("No s'han pogut carregar les competicions. Torna-ho a provar.");
-      },
-    });
+  selectDiscipline(disciplinaId: string): void {
+    void this.router.navigate(['/competicio', disciplinaId]);
   }
 
-  selectCompetition(competicioId: string, opts: { updateUrl?: boolean } = {}): void {
-    this.selectedCompeticioId.set(competicioId);
-    this.selectedGrupId.set(undefined);
-    this.groups.set([]);
-    this.teams.set([]);
-    this.syncUrl(opts.updateUrl !== false);
-
-    this.loading.set(true);
-    this.error.set(undefined);
-    this.catalog.listGroups(competicioId).subscribe({
-      next: (groups) => {
-        this.groups.set(groups);
-        this.loading.set(false);
-      },
-      error: () => {
-        this.loading.set(false);
-        this.error.set("No s'han pogut carregar els grups. Torna-ho a provar.");
-      },
-    });
+  selectCompetition(competicioId: string): void {
+    void this.router.navigate(['/grup', this.disciplinaId(), competicioId]);
   }
 
-  selectGroup(grupId: string, opts: { updateUrl?: boolean } = {}): void {
-    this.selectedGrupId.set(grupId);
-    this.teams.set([]);
-    this.syncUrl(opts.updateUrl !== false);
-
-    this.loading.set(true);
-    this.error.set(undefined);
-    this.catalog.listTeams(grupId).subscribe({
-      next: (teams) => {
-        this.teams.set(teams);
-        this.loading.set(false);
-      },
-      error: () => {
-        this.loading.set(false);
-        this.error.set("No s'han pogut carregar els equips. Torna-ho a provar.");
-      },
-    });
+  selectGroup(grupId: string): void {
+    void this.router.navigate(['/equips', this.disciplinaId(), this.competicioId(), grupId]);
   }
 
   selectTeam(team: SelectableOption): void {
-    const grupId = this.selectedGrupId();
+    const grupId = this.grupId();
     if (!grupId) {
       return;
     }
@@ -152,54 +160,16 @@ export class TeamSelectorPage {
   goBack(): void {
     switch (this.step()) {
       case 'team':
-        this.selectedGrupId.set(undefined);
-        this.teams.set([]);
-        this.syncUrl(true);
+        void this.router.navigate(['/grup', this.disciplinaId(), this.competicioId()]);
         break;
       case 'group':
-        this.selectedCompeticioId.set(undefined);
-        this.groups.set([]);
-        this.teams.set([]);
-        this.syncUrl(true);
+        void this.router.navigate(['/competicio', this.disciplinaId()]);
         break;
       case 'competition':
-        this.selectedDisciplinaId.set(undefined);
-        this.competitions.set([]);
-        this.groups.set([]);
-        this.teams.set([]);
-        this.syncUrl(true);
+        void this.router.navigate(['/']);
         break;
       case 'discipline':
         break;
     }
-  }
-
-  private loadDisciplines(): void {
-    this.loading.set(true);
-    this.catalog.listDisciplines().subscribe({
-      next: (disciplines) => {
-        this.disciplines.set(disciplines);
-        this.loading.set(false);
-      },
-      error: () => {
-        this.loading.set(false);
-        this.error.set("No s'ha pogut carregar la llista de disciplines. Torna-ho a provar.");
-      },
-    });
-  }
-
-  private syncUrl(updateUrl: boolean): void {
-    if (!updateUrl) {
-      return;
-    }
-    void this.router.navigate([], {
-      relativeTo: this.route,
-      queryParams: {
-        disciplinaId: this.selectedDisciplinaId() ?? null,
-        competicioId: this.selectedCompeticioId() ?? null,
-        grupId: this.selectedGrupId() ?? null,
-      },
-      queryParamsHandling: 'merge',
-    });
   }
 }
