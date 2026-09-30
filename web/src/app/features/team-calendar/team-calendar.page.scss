@@ -6,6 +6,10 @@
   margin: 0 auto;
   padding: var(--space-lg) var(--space-container-margin) var(--space-xl);
 
+  @media (min-width: 768px) {
+    max-width: 960px;
+  }
+
   &__loading,
   &__error,
   &__empty {
@@ -61,6 +65,11 @@
 
     &--cards {
       gap: var(--space-md);
+
+      @media (min-width: 768px) {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
     }
   }
 }
