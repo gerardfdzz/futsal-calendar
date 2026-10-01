@@ -6,7 +6,7 @@ import { CompetitionCatalogService } from '../../core/services/competition-catal
 import { SeoService } from '../../core/services/seo.service';
 import { SITE_BASE_URL } from '../../core/seo.config';
 import type { Match } from '../../core/models/match.model';
-import type { GroupContext } from '../../core/models/catalog.model';
+import type { TeamOption } from '../../core/models/catalog.model';
 import { hideBrokenCrest } from '../../core/utils/crest';
 import { NextMatchHeroComponent } from './next-match-hero/next-match-hero.component';
 import { MatchListItemComponent } from './match-list-item/match-list-item.component';
@@ -38,13 +38,16 @@ export class TeamCalendarPage {
   readonly loading = signal(true);
   readonly error = signal<string | undefined>(undefined);
 
-  // Best-effort, secondary info: the group/competition/discipline breadcrumb. Its own
-  // service call can 404 (a group outside the crawled catalog) or fail outright without
-  // blocking the page — the matches themselves are the primary content.
-  readonly groupContext = signal<GroupContext | undefined>(undefined);
+  // The team's name/crest used to come only from `matches()[0]` (whichever side of a match
+  // is "us"), which left the page blank — no name, no crest, just the "Equip" placeholder —
+  // for a team with zero matches in its group's calendar (normal before a season's fixtures
+  // are published, not an error). `listTeams(groupId)` already has every team's name/crest
+  // and doesn't depend on there being any matches yet, so it's the primary source; the
+  // match-derived name is only a fallback for the rare case this lookup itself fails.
+  readonly teamInfo = signal<TeamOption | undefined>(undefined);
 
-  readonly teamName = computed(() => this.pickOurTeam()?.name);
-  readonly teamCrest = computed(() => this.pickOurTeam()?.crest);
+  readonly teamName = computed(() => this.teamInfo()?.name ?? this.pickOurTeam()?.name);
+  readonly teamCrest = computed(() => this.teamInfo()?.crest ?? this.pickOurTeam()?.crest);
 
   readonly hideCrest = hideBrokenCrest;
 
@@ -57,11 +60,15 @@ export class TeamCalendarPage {
 
   readonly nextMatch = computed(() => this.upcomingMatches()[0]);
 
+  // Ascending (oldest first) so the 2-column grid (team-calendar.page.scss,
+  // .team-calendar__list--cards) reads jornada 1, 2, 3... left-to-right, top-to-bottom —
+  // the same order a descending sort would break (jornada 2 would land top-left, before
+  // jornada 1 top-right).
   readonly pastMatches = computed(() => {
     const now = Date.now();
     return [...this.matches()]
       .filter((match) => new Date(match.startsAt).getTime() < now)
-      .sort((a, b) => new Date(b.startsAt).getTime() - new Date(a.startsAt).getTime());
+      .sort((a, b) => new Date(a.startsAt).getTime() - new Date(b.startsAt).getTime());
   });
 
   constructor() {
@@ -82,11 +89,11 @@ export class TeamCalendarPage {
       },
     });
 
-    this.catalogService.getGroupContext(this.groupId).subscribe({
-      next: (context) => this.groupContext.set(context),
-      // Not found (404) or the federation being unreachable (502) both just mean no
-      // breadcrumb — never worth surfacing as a page-level error.
-      error: () => this.groupContext.set(undefined),
+    // Best-effort, secondary to the matches fetch above: a failure here just means the
+    // match-derived name/crest (if any) is used instead, never a page-level error.
+    this.catalogService.listTeams(this.groupId).subscribe({
+      next: (teams) => this.teamInfo.set(teams.find((team) => team.id === this.teamId)),
+      error: () => this.teamInfo.set(undefined),
     });
 
     effect(() => {

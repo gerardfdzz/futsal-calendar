@@ -30,6 +30,26 @@ test('parseFcfDate: trims surrounding whitespace', () => {
   assert.equal(result.toISOString(), '2026-09-26T16:30:00.000Z');
 });
 
+test('parseFcfDate: also accepts a "T" separator, the format the FCF switched to for the 2026-27 season', () => {
+  const result = parseFcfDate('2026-09-27T19:30:00');
+  assert.equal(result.toISOString(), '2026-09-27T17:30:00.000Z');
+});
+
+test('parseFcfDate: "T"-separated and space-separated values for the same instant resolve identically', () => {
+  const spaceSeparated = parseFcfDate('2026-09-27 19:30:00');
+  const tSeparated = parseFcfDate('2026-09-27T19:30:00');
+  assert.equal(spaceSeparated.getTime(), tSeparated.getTime());
+});
+
+test('parseFcfDate: a "T" separator does not open the door to a trailing timezone marker', () => {
+  // Accepting "T" as a date/time separator must not be mistaken for accepting ISO 8601
+  // wholesale — a trailing "Z" (or an offset) changes the meaning from "Europe/Madrid wall
+  // clock" to "this exact UTC instant", so it must keep throwing just like it already does
+  // for the space-separated format below.
+  assert.throws(() => parseFcfDate('2026-09-27T19:30:00Z'), FcfDateParseError);
+  assert.throws(() => parseFcfDate('2026-09-27T19:30:00+02:00'), FcfDateParseError);
+});
+
 test('parseFcfDate: throws FcfDateParseError for a format that does not match "YYYY-MM-DD HH:mm:ss"', () => {
   assert.throws(() => parseFcfDate('26/09/2026 18:30'), FcfDateParseError);
   assert.throws(() => parseFcfDate('2026-09-26T18:30:00Z'), FcfDateParseError);

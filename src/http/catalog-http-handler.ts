@@ -169,12 +169,35 @@ function routeError(error: unknown): JsonHttpResponse {
 }
 
 function upstreamError(logger: HttpLogger, context: string, error: unknown): JsonHttpResponse {
-  logger.error(`failed to fetch ${context}`, { error: error instanceof Error ? error.message : String(error) });
+  logger.error(`failed to fetch ${context}`, { error: describeErrorChain(error) });
   return {
     status: 502,
     headers: { 'Content-Type': 'text/plain; charset=utf-8', 'Cache-Control': 'no-store' },
     body: 'Failed to fetch data from the federation. Please try again shortly.',
   };
+}
+
+// `error.message` alone hides the real cause here: FcfCatalogProviderError and FcfHttpError
+// both wrap the underlying failure in `.cause` (an HTTP status + body snippet, a timeout, a
+// network-level fetch failure, ...) rather than folding it into their own message, so a plain
+// `error.message` log line only ever says "Failed to fetch FCF disciplines" — never *why*.
+// Walks the `.cause` chain and joins each layer's message so the actual reason (a specific
+// HTTP status from the FCF, a DNS/connect failure, a timeout) shows up in the server log.
+function describeErrorChain(error: unknown): string {
+  const messages: string[] = [];
+  let current: unknown = error;
+  const seen = new Set<unknown>();
+  while (current !== undefined && current !== null && !seen.has(current)) {
+    seen.add(current);
+    if (current instanceof Error) {
+      messages.push(current.message);
+      current = (current as { cause?: unknown }).cause;
+    } else {
+      messages.push(String(current));
+      break;
+    }
+  }
+  return messages.length > 0 ? messages.join(' <- caused by: ') : String(error);
 }
 
 function nonEmptyOrDefault(value: string | undefined, fallback: string): string {

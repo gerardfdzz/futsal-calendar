@@ -9,9 +9,6 @@
         <img class="team-calendar__crest" [src]="crest" alt="" aria-hidden="true" (error)="hideCrest($event)" />
       }
       <h1 class="team-calendar__name">{{ teamName() ?? 'Equip' }}</h1>
-      @if (groupContext(); as ctx) {
-        <p class="team-calendar__breadcrumb">{{ ctx.discipline.name }} · {{ ctx.competition.name }} · {{ ctx.group.name }}</p>
-      }
     </header>
 
     @if (pastMatches().length > 0) {

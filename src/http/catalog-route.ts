@@ -41,19 +41,6 @@ export function parseTeamsRoute(rawUrl: string): { grupId: string } {
   return { grupId };
 }
 
-export function parseGroupContextRoute(rawUrl: string): { grupId: string } {
-  const segments = pathSegments(rawUrl);
-  const index = segments.indexOf('groups');
-  if (index === -1 || segments.length < index + 3 || segments[index + 2] !== 'context') {
-    throw new InvalidRouteError(`Expected a path like /api/groups/{grupId}/context, got: "${rawUrl}"`);
-  }
-  const grupId = decodeSegment(segments[index + 1] ?? '').trim();
-  if (grupId === '') {
-    throw new InvalidRouteError(`grupId must be non-empty, got path: "${rawUrl}"`);
-  }
-  return { grupId };
-}
-
 export function parseMatchesRoute(rawUrl: string): { groupId: string; teamId: string } {
   const segments = pathSegments(rawUrl);
   const index = segments.indexOf('matches');

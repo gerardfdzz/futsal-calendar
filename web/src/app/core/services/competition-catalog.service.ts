@@ -1,7 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import type { Observable } from 'rxjs';
-import type { Competition, Discipline, Group, GroupContext, TeamOption } from '../models/catalog.model';
+import type { Competition, Discipline, Group, TeamOption } from '../models/catalog.model';
 
 @Injectable({ providedIn: 'root' })
 export class CompetitionCatalogService {
@@ -25,9 +25,5 @@ export class CompetitionCatalogService {
 
   listTeams(grupId: string): Observable<TeamOption[]> {
     return this.http.get<TeamOption[]>(`/api/groups/${encodeURIComponent(grupId)}/teams`);
-  }
-
-  getGroupContext(grupId: string): Observable<GroupContext> {
-    return this.http.get<GroupContext>(`/api/groups/${encodeURIComponent(grupId)}/context`);
   }
 }

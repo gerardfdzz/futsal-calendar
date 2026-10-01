@@ -11,7 +11,6 @@ import {
   handleGroupsRequest,
   handleTeamsRequest,
 } from '../src/http/catalog-http-handler.js';
-import { handleGroupContextRequest } from '../src/http/group-context-http-handler.js';
 
 const port = Number(process.argv[2] ?? process.env['PORT'] ?? 3000);
 const matchProvider = new FcfFederationProvider();
@@ -36,7 +35,6 @@ function route(req: IncomingMessage): Handler {
     if (segments[1] === 'matches') return serveMatches;
     if (segments[1] === 'disciplines') return serveDisciplines;
     if (segments[1] === 'groups' && segments[3] === 'teams') return serveTeams;
-    if (segments[1] === 'groups' && segments[3] === 'context') return serveGroupContext;
     if (segments[1] === 'competitions' && segments[3] === 'groups') return serveGroups;
     if (segments[1] === 'competitions') return serveCompetitions;
     if (segments[1] === 'team-page') return serveTeamPage;
@@ -94,12 +92,6 @@ const serveTeams: Handler = async (req, res) => {
   res.end(response.body);
 };
 
-const serveGroupContext: Handler = async (req, res) => {
-  const response = await handleGroupContextRequest(catalog, { method: req.method, url: req.url ?? '' });
-  res.writeHead(response.status, response.headers);
-  res.end(response.body);
-};
-
 const serveTeamPage: Handler = async (req, res) => {
   const response = await handleTeamPageRequest(matchProvider, catalog, { method: req.method, url: req.url ?? '' });
   res.writeHead(response.status, response.headers);
@@ -122,7 +114,6 @@ server.listen(port, () => {
   console.log(`Try: http://localhost:${port}/api/calendar/58162580/54755993.ics`);
   console.log(`Try: http://localhost:${port}/api/matches/58162580/54755993`);
   console.log(`Try: http://localhost:${port}/api/disciplines`);
-  console.log(`Try: http://localhost:${port}/api/groups/58162580/context`);
   console.log(`Try: http://localhost:${port}/api/team-page?groupId=58162580&teamId=54755993`);
   console.log(`Try: http://localhost:${port}/api/sitemap (slow on first hit — crawls the FCF catalog)`);
 });
