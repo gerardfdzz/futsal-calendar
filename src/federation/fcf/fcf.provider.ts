@@ -1,7 +1,7 @@
 import type { Match } from '../../domain/match.js';
 import type { FederationProvider } from '../federation-provider.js';
 import type { FcfMatchDto, FcfMatchesResponse } from './fcf.types.js';
-import { isBye } from './fcf-bye.js';
+import { findWithdrawnTeamIds, isBye } from './fcf-bye.js';
 import { mapFcfMatch } from './fcf.mapper.js';
 import { consoleFcfLogger, type FcfLogger } from './fcf-logger.js';
 
@@ -61,6 +61,16 @@ export class FcfFederationProvider implements FederationProvider {
 
     const response = await this.fetchMatchesResponse(trimmedGroupId);
     return this.flattenAndMap(response, trimmedGroupId);
+  }
+
+  async getWithdrawnTeamIds(groupId: string): Promise<ReadonlySet<string>> {
+    const trimmedGroupId = groupId.trim();
+    if (trimmedGroupId === '') {
+      throw new FcfProviderError('groupId must be a non-empty string');
+    }
+
+    const response = await this.fetchMatchesResponse(trimmedGroupId);
+    return findWithdrawnTeamIds(response);
   }
 
   private async fetchMatchesResponse(groupId: string): Promise<FcfMatchesResponse> {

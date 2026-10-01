@@ -164,3 +164,36 @@ test('getMatches: throws FcfProviderError for an unexpected top-level shape (e.g
 
   await assert.rejects(() => provider.getMatches('58162580'), FcfProviderError);
 });
+
+test('getWithdrawnTeamIds: reports a real team id whose own name has become "Descans" across the whole response', async () => {
+  const withdrawnMatch = buildFcfMatchDto({ CODACTA: '1', CODEQUIPO_CASA: '51463150', NOMBRE_CASA: 'Descans' });
+  const normalMatch = buildFcfMatchDto({ CODACTA: '2' });
+  const fetchFn = async () => jsonResponse({ '1': [withdrawnMatch, normalMatch] });
+  const provider = new FcfFederationProvider({ fetchFn, logger: noopFcfLogger });
+
+  const withdrawn = await provider.getWithdrawnTeamIds('58162580');
+
+  assert.deepEqual([...withdrawn], ['51463150']);
+});
+
+test('getWithdrawnTeamIds: an all-real, no-bye response withdraws nobody', async () => {
+  const fetchFn = async () => jsonResponse({ '1': [buildFcfMatchDto()] });
+  const provider = new FcfFederationProvider({ fetchFn, logger: noopFcfLogger });
+
+  const withdrawn = await provider.getWithdrawnTeamIds('58162580');
+
+  assert.deepEqual([...withdrawn], []);
+});
+
+test('getWithdrawnTeamIds: rejects an empty groupId without making a request', async () => {
+  const provider = new FcfFederationProvider({ fetchFn: async () => jsonResponse({}), logger: noopFcfLogger });
+
+  await assert.rejects(() => provider.getWithdrawnTeamIds('   '), FcfProviderError);
+});
+
+test('getWithdrawnTeamIds: throws FcfProviderError for invalid JSON, same as getMatches', async () => {
+  const fetchFn = async () => new Response('not json', { status: 200 });
+  const provider = new FcfFederationProvider({ fetchFn, logger: noopFcfLogger });
+
+  await assert.rejects(() => provider.getWithdrawnTeamIds('58162580'), FcfProviderError);
+});

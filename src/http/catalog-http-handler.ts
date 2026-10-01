@@ -99,44 +99,72 @@ export async function handleTeamsRequest(
 
   try {
     const teams = await catalog.listTeams(grupId);
-    const teamsWithCrests = federation ? await enrichTeamsWithCrests(teams, federation, grupId, logger) : teams;
-    return jsonOk(teamsWithCrests);
+    const activeTeamsWithCrests = federation ? await enrichTeams(teams, federation, grupId, logger) : teams;
+    return jsonOk(activeTeamsWithCrests);
   } catch (error) {
     return upstreamError(logger, `equipos (grupId="${grupId}")`, error);
   }
 }
 
-async function enrichTeamsWithCrests(
+async function enrichTeams(
   teams: readonly TeamOption[],
   federation: FederationProvider,
   grupId: string,
   logger: HttpLogger,
 ): Promise<TeamOption[]> {
-  let matches;
+  const [crestByTeamId, withdrawnTeamIds] = await Promise.all([
+    fetchCrestByTeamId(federation, grupId, logger),
+    fetchWithdrawnTeamIds(federation, grupId, logger),
+  ]);
+
+  return teams
+    .filter((team) => !withdrawnTeamIds.has(team.id))
+    .map((team) => {
+      const crest = crestByTeamId.get(team.id);
+      return crest !== undefined ? { ...team, crest } : team;
+    });
+}
+
+async function fetchCrestByTeamId(
+  federation: FederationProvider,
+  grupId: string,
+  logger: HttpLogger,
+): Promise<ReadonlyMap<string, string>> {
   try {
-    matches = await federation.getMatches(grupId);
+    const matches = await federation.getMatches(grupId);
+    const crestByTeamId = new Map<string, string>();
+    for (const match of matches) {
+      if (match.homeTeam.crest) {
+        crestByTeamId.set(match.homeTeam.id, match.homeTeam.crest);
+      }
+      if (match.awayTeam.crest) {
+        crestByTeamId.set(match.awayTeam.id, match.awayTeam.crest);
+      }
+    }
+    return crestByTeamId;
   } catch (error) {
     logger.error('failed to fetch matches for crest enrichment; returning teams without crests', {
       grupId,
       error: error instanceof Error ? error.message : String(error),
     });
-    return [...teams];
+    return new Map();
   }
+}
 
-  const crestByTeamId = new Map<string, string>();
-  for (const match of matches) {
-    if (match.homeTeam.crest) {
-      crestByTeamId.set(match.homeTeam.id, match.homeTeam.crest);
-    }
-    if (match.awayTeam.crest) {
-      crestByTeamId.set(match.awayTeam.id, match.awayTeam.crest);
-    }
+async function fetchWithdrawnTeamIds(
+  federation: FederationProvider,
+  grupId: string,
+  logger: HttpLogger,
+): Promise<ReadonlySet<string>> {
+  try {
+    return await federation.getWithdrawnTeamIds(grupId);
+  } catch (error) {
+    logger.error('failed to fetch withdrawn team ids; returning the full team list', {
+      grupId,
+      error: error instanceof Error ? error.message : String(error),
+    });
+    return new Set();
   }
-
-  return teams.map((team) => {
-    const crest = crestByTeamId.get(team.id);
-    return crest !== undefined ? { ...team, crest } : team;
-  });
 }
 
 function checkMethod(method: string | undefined): JsonHttpResponse | undefined {

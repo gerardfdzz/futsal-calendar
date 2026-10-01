@@ -172,3 +172,38 @@ test('handleTeamsRequest: if fetching matches for crest enrichment fails, still 
   assert.equal(response.status, 200);
   assert.deepEqual(JSON.parse(response.body), [{ id: '54755993', name: 'CFS LA SÉNIA' }]);
 });
+
+test('handleTeamsRequest: a withdrawn team (permanently "Descans" in the calendar) is excluded from the list', async () => {
+  const catalog = new FakeCompetitionCatalogProvider({
+    teams: [
+      { id: '54755993', name: 'CFS LA SÉNIA' },
+      { id: '51463150', name: 'FUNDACIO F. VILANOVA I LA GELTRÚ C' },
+    ],
+  });
+  const federation = new FakeFederationProvider([], undefined, new Set(['51463150']));
+
+  const response = await handleTeamsRequest(
+    catalog,
+    { method: 'GET', url: '/api/groups/58162580/teams' },
+    noopHttpLogger,
+    federation,
+  );
+
+  assert.deepEqual(federation.calledForWithdrawnTeamIds, ['58162580']);
+  assert.deepEqual(JSON.parse(response.body), [{ id: '54755993', name: 'CFS LA SÉNIA' }]);
+});
+
+test('handleTeamsRequest: if fetching withdrawn team ids fails, still returns the full team list (200), never fails the request', async () => {
+  const catalog = new FakeCompetitionCatalogProvider({ teams: [{ id: '54755993', name: 'CFS LA SÉNIA' }] });
+  const federation = new FakeFederationProvider([], undefined, new Set(), new Error('FCF is down'));
+
+  const response = await handleTeamsRequest(
+    catalog,
+    { method: 'GET', url: '/api/groups/58162580/teams' },
+    noopHttpLogger,
+    federation,
+  );
+
+  assert.equal(response.status, 200);
+  assert.deepEqual(JSON.parse(response.body), [{ id: '54755993', name: 'CFS LA SÉNIA' }]);
+});

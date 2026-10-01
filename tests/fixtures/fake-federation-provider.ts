@@ -3,10 +3,13 @@ import type { FederationProvider } from '../../src/federation/federation-provide
 
 export class FakeFederationProvider implements FederationProvider {
   public calledWithGroupIds: string[] = [];
+  public calledForWithdrawnTeamIds: string[] = [];
 
   constructor(
     private readonly matchesByGroupId: ReadonlyMap<string, Match[]> | Match[],
     private readonly error?: Error,
+    private readonly withdrawnTeamIds: ReadonlySet<string> = new Set(),
+    private readonly withdrawnTeamIdsError?: Error,
   ) {}
 
   async getMatches(groupId: string): Promise<Match[]> {
@@ -20,5 +23,15 @@ export class FakeFederationProvider implements FederationProvider {
       return this.matchesByGroupId;
     }
     return this.matchesByGroupId.get(groupId) ?? [];
+  }
+
+  async getWithdrawnTeamIds(groupId: string): Promise<ReadonlySet<string>> {
+    this.calledForWithdrawnTeamIds.push(groupId);
+
+    if (this.withdrawnTeamIdsError) {
+      throw this.withdrawnTeamIdsError;
+    }
+
+    return this.withdrawnTeamIds;
   }
 }
