@@ -27,15 +27,6 @@ export class InvalidTeamPageRequestError extends Error {
   }
 }
 
-/**
- * Serves a real, crawlable HTML snapshot of a team's calendar page (title, meta
- * description, canonical, OG/Twitter tags and a SportsEvent JSON-LD for the next
- * match, all filled with that team's real name and fixtures). This is only ever
- * reached by known bot/crawler user agents (see the `has`-header rewrite in
- * vercel.json) — a normal browser always gets the Angular SPA instead. The content
- * here matches exactly what a person would see rendered by the SPA, so this is
- * "dynamic rendering", not cloaking.
- */
 export async function handleTeamPageRequest(
   federation: FederationProvider,
   catalog: CompetitionCatalogProvider | undefined,

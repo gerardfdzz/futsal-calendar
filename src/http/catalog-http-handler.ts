@@ -177,12 +177,6 @@ function upstreamError(logger: HttpLogger, context: string, error: unknown): Jso
   };
 }
 
-// `error.message` alone hides the real cause here: FcfCatalogProviderError and FcfHttpError
-// both wrap the underlying failure in `.cause` (an HTTP status + body snippet, a timeout, a
-// network-level fetch failure, ...) rather than folding it into their own message, so a plain
-// `error.message` log line only ever says "Failed to fetch FCF disciplines" — never *why*.
-// Walks the `.cause` chain and joins each layer's message so the actual reason (a specific
-// HTTP status from the FCF, a DNS/connect failure, a timeout) shows up in the server log.
 function describeErrorChain(error: unknown): string {
   const messages: string[] = [];
   let current: unknown = error;

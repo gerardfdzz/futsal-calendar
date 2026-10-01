@@ -6,11 +6,6 @@ import { consoleHttpLogger, type HttpLogger } from './http-logger.js';
 
 const ALLOWED_METHODS = ['GET', 'HEAD'];
 
-// A full crawl hits the FCF's own API hundreds of times (see sitemap-crawler.ts), so it
-// must not run on every request. This cache is deliberately just an in-memory module
-// variable, not a database: it matches the project's existing "no persistence for now"
-// stance, at the cost of resetting on cold starts (an occasional extra crawl is an
-// acceptable trade-off for an MVP; see README "Design decisions").
 const SITEMAP_CACHE_TTL_MS = 12 * 60 * 60 * 1000;
 const SITEMAP_HTTP_CACHE_MAX_AGE_SECONDS = 6 * 60 * 60;
 
@@ -94,17 +89,11 @@ function buildHomepageOnlySitemap(): string {
   return buildSitemapXml([{ url: `https://${DEFAULT_UID_DOMAIN}/`, changeFrequency: 'weekly', priority: 1.0 }]);
 }
 
-/** Test-only: the module-level cache above is a deliberate singleton (see comment near
- * its declaration), which means tests must reset it between cases instead of re-importing
- * the module. Not used outside tests/. */
 export function resetSitemapCacheForTests(): void {
   cache = undefined;
   inFlightCrawl = undefined;
 }
 
-/** Test-only: seeds the cache directly (optionally with an old `generatedAt`) so a test
- * can exercise the "serve the last known-good sitemap" fallback without waiting out the
- * real TTL. Not used outside tests/. */
 export function seedSitemapCacheForTests(xml: string, generatedAt: number = Date.now()): void {
   cache = { xml, generatedAt };
 }

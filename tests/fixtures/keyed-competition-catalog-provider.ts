@@ -1,12 +1,6 @@
 import type { Competition, Discipline, Group, TeamOption } from '../../src/domain/competition-catalog.js';
 import type { CompetitionCatalogProvider } from '../../src/federation/competition-catalog-provider.js';
 
-/**
- * Unlike FakeCompetitionCatalogProvider (fixed return values regardless of arguments),
- * this fake returns different data depending on the id passed in — needed for anything
- * that walks the discipline -> competition -> group -> team hierarchy, where each level's
- * children genuinely depend on the parent id.
- */
 export class KeyedCompetitionCatalogProvider implements CompetitionCatalogProvider {
   public readonly calls: { method: string; args: string[] }[] = [];
 
@@ -16,7 +10,6 @@ export class KeyedCompetitionCatalogProvider implements CompetitionCatalogProvid
       competitionsByDisciplinaId?: ReadonlyMap<string, Competition[]>;
       groupsByCompeticioId?: ReadonlyMap<string, Group[]>;
       teamsByGrupId?: ReadonlyMap<string, TeamOption[]>;
-      /** arg omitted means "throw for this method regardless of which id it's called with". */
       errorOn?: { method: string; arg?: string };
     },
   ) {}

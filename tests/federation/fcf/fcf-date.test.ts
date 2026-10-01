@@ -42,10 +42,6 @@ test('parseFcfDate: "T"-separated and space-separated values for the same instan
 });
 
 test('parseFcfDate: a "T" separator does not open the door to a trailing timezone marker', () => {
-  // Accepting "T" as a date/time separator must not be mistaken for accepting ISO 8601
-  // wholesale — a trailing "Z" (or an offset) changes the meaning from "Europe/Madrid wall
-  // clock" to "this exact UTC instant", so it must keep throwing just like it already does
-  // for the space-separated format below.
   assert.throws(() => parseFcfDate('2026-09-27T19:30:00Z'), FcfDateParseError);
   assert.throws(() => parseFcfDate('2026-09-27T19:30:00+02:00'), FcfDateParseError);
 });

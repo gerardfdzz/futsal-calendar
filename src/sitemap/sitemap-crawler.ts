@@ -10,15 +10,6 @@ export interface CrawledTeamPage {
   readonly url: string;
 }
 
-/**
- * Walks the FCF's own catalog (discipline -> competitions -> groups -> teams, the same
- * cascading structure the team-selector wizard uses) and returns one entry per team page
- * this app serves. Best-effort throughout: a failure on any single branch (one discipline,
- * one competition, one group) is logged and skipped rather than aborting the whole crawl,
- * the same philosophy FcfFederationProvider already uses for individual bad matches. See
- * README "Design decisions" for why this only covers SITEMAP_DISCIPLINA_IDS, not every
- * FCF discipline, and why the concurrency is bounded.
- */
 export async function crawlTeamPageUrls(
   catalog: CompetitionCatalogProvider,
   logger: HttpLogger,

@@ -38,12 +38,6 @@ export class TeamCalendarPage {
   readonly loading = signal(true);
   readonly error = signal<string | undefined>(undefined);
 
-  // The team's name/crest used to come only from `matches()[0]` (whichever side of a match
-  // is "us"), which left the page blank — no name, no crest, just the "Equip" placeholder —
-  // for a team with zero matches in its group's calendar (normal before a season's fixtures
-  // are published, not an error). `listTeams(groupId)` already has every team's name/crest
-  // and doesn't depend on there being any matches yet, so it's the primary source; the
-  // match-derived name is only a fallback for the rare case this lookup itself fails.
   readonly teamInfo = signal<TeamOption | undefined>(undefined);
 
   readonly teamName = computed(() => this.teamInfo()?.name ?? this.pickOurTeam()?.name);
@@ -60,10 +54,6 @@ export class TeamCalendarPage {
 
   readonly nextMatch = computed(() => this.upcomingMatches()[0]);
 
-  // Ascending (oldest first) so the 2-column grid (team-calendar.page.scss,
-  // .team-calendar__list--cards) reads jornada 1, 2, 3... left-to-right, top-to-bottom —
-  // the same order a descending sort would break (jornada 2 would land top-left, before
-  // jornada 1 top-right).
   readonly pastMatches = computed(() => {
     const now = Date.now();
     return [...this.matches()]
@@ -89,8 +79,6 @@ export class TeamCalendarPage {
       },
     });
 
-    // Best-effort, secondary to the matches fetch above: a failure here just means the
-    // match-derived name/crest (if any) is used instead, never a page-level error.
     this.catalogService.listTeams(this.groupId).subscribe({
       next: (teams) => this.teamInfo.set(teams.find((team) => team.id === this.teamId)),
       error: () => this.teamInfo.set(undefined),
