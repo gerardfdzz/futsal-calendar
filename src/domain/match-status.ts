@@ -1,1 +1,1 @@
-export type MatchStatus = 'scheduled' | 'finished' | 'postponed' | 'cancelled' | 'unknown';
+export type MatchStatus = 'scheduled' | 'finished' | 'postponed' | 'suspended' | 'cancelled' | 'unknown';

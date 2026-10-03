@@ -6,6 +6,7 @@ const KNOWN_STATUS_CODES: ReadonlyMap<string, MatchStatus> = new Map([
   ['0|0', 'scheduled'],
   ['1|1', 'finished'],
   ['0|2', 'postponed'],
+  ['0|3', 'suspended'],
 ]);
 
 export function mapFcfStatus(

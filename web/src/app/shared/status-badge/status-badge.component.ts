@@ -5,6 +5,7 @@ const STATUS_LABELS: Record<MatchStatus, string> = {
   scheduled: 'Programat',
   finished: 'Finalitzat',
   postponed: 'Ajornat',
+  suspended: 'Suspès',
   cancelled: 'Cancel·lat',
   unknown: 'Per confirmar',
 };
@@ -18,6 +19,7 @@ const STATUS_LABELS: Record<MatchStatus, string> = {
       [class.status-badge--scheduled]="status() === 'scheduled'"
       [class.status-badge--finished]="status() === 'finished'"
       [class.status-badge--postponed]="status() === 'postponed'"
+      [class.status-badge--suspended]="status() === 'suspended'"
       [class.status-badge--cancelled]="status() === 'cancelled'"
       >{{ label() }}</span
     >

@@ -1,4 +1,4 @@
-export type MatchStatus = 'scheduled' | 'finished' | 'postponed' | 'cancelled' | 'unknown';
+export type MatchStatus = 'scheduled' | 'finished' | 'postponed' | 'suspended' | 'cancelled' | 'unknown';
 
 export interface TeamRef {
   readonly id: string;

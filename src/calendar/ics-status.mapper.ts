@@ -8,6 +8,7 @@ export function mapMatchStatusToIcsStatus(status: MatchStatus): IcsEventStatus |
     case 'finished':
       return 'CONFIRMED';
     case 'postponed':
+    case 'suspended':
       return 'TENTATIVE';
     case 'cancelled':
       return 'CANCELLED';

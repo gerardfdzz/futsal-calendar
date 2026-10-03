@@ -4,7 +4,9 @@
   padding: 2px var(--space-sm);
   border-radius: var(--radius-full);
   font-size: 12px;
-  font-weight: 500;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
   background: var(--color-status-unknown-bg);
   color: var(--color-status-unknown-text);
 
@@ -21,6 +23,11 @@
   &--postponed {
     background: var(--color-status-postponed-bg);
     color: var(--color-status-postponed-text);
+  }
+
+  &--suspended {
+    background: var(--color-status-suspended-bg);
+    color: var(--color-status-suspended-text);
   }
 
   &--cancelled {

@@ -11,6 +11,10 @@ test('mapMatchStatusToIcsStatus: postponed maps to TENTATIVE', () => {
   assert.equal(mapMatchStatusToIcsStatus('postponed'), 'TENTATIVE');
 });
 
+test('mapMatchStatusToIcsStatus: suspended also maps to TENTATIVE', () => {
+  assert.equal(mapMatchStatusToIcsStatus('suspended'), 'TENTATIVE');
+});
+
 test('mapMatchStatusToIcsStatus: cancelled maps to CANCELLED', () => {
   assert.equal(mapMatchStatusToIcsStatus('cancelled'), 'CANCELLED');
 });

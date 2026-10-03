@@ -46,7 +46,10 @@ function buildSummaryText(match: Match): string {
     return `⚽ FINAL · ${match.homeTeam.name} ${match.score.home} - ${match.score.away} ${match.awayTeam.name}`;
   }
   if (match.status === 'postponed') {
-    return `⏸ AJORNAT · ${match.homeTeam.name} - ${match.awayTeam.name}`;
+    return `📅 AJORNAT · ${match.homeTeam.name} - ${match.awayTeam.name}`;
+  }
+  if (match.status === 'suspended') {
+    return `❌ SUSPÈS · ${match.homeTeam.name} - ${match.awayTeam.name}`;
   }
   return `⚽ ${match.homeTeam.name} - ${match.awayTeam.name}`;
 }

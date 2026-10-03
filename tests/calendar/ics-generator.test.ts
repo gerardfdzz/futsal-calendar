@@ -251,7 +251,7 @@ test('generateIcs: SUMMARY is prefixed with AJORNAT for a postponed match, keepi
   });
   const lines = unfoldIcs(generateIcs([match], { calendarName: 'X', now: FIXED_NOW }));
 
-  assert.ok(lines.includes("SUMMARY:⏸ AJORNAT · CFS LA SÉNIA - L'AMETLLA"));
+  assert.ok(lines.includes("SUMMARY:📅 AJORNAT · CFS LA SÉNIA - L'AMETLLA"));
   assert.ok(lines.includes('DTSTART;TZID=Europe/Madrid:20260926T183000'));
 });
 
@@ -260,6 +260,30 @@ test('generateIcs: a postponed match with a score still shows FINAL, not AJORNAT
     homeTeam: { id: '1', name: 'A' },
     awayTeam: { id: '2', name: 'B' },
     status: 'postponed',
+    score: { home: 2, away: 1 },
+  });
+  const lines = unfoldIcs(generateIcs([match], { calendarName: 'X', now: FIXED_NOW }));
+
+  assert.ok(lines.includes('SUMMARY:⚽ FINAL · A 2 - 1 B'));
+});
+
+test('generateIcs: SUMMARY is prefixed with SUSPÈS for a suspended match, keeping the original kickoff', () => {
+  const match = buildMatch({
+    homeTeam: { id: '54755993', name: 'CFS LA SÉNIA' },
+    awayTeam: { id: '12345678', name: "L'AMETLLA" },
+    status: 'suspended',
+  });
+  const lines = unfoldIcs(generateIcs([match], { calendarName: 'X', now: FIXED_NOW }));
+
+  assert.ok(lines.includes("SUMMARY:❌ SUSPÈS · CFS LA SÉNIA - L'AMETLLA"));
+  assert.ok(lines.includes('DTSTART;TZID=Europe/Madrid:20260926T183000'));
+});
+
+test('generateIcs: a suspended match with a score still shows FINAL, not SUSPÈS (score wins)', () => {
+  const match = buildMatch({
+    homeTeam: { id: '1', name: 'A' },
+    awayTeam: { id: '2', name: 'B' },
+    status: 'suspended',
     score: { home: 2, away: 1 },
   });
   const lines = unfoldIcs(generateIcs([match], { calendarName: 'X', now: FIXED_NOW }));
