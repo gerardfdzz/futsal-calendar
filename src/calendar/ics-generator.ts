@@ -42,10 +42,13 @@ interface VEventConfig {
 }
 
 function buildSummaryText(match: Match): string {
-  if (!match.score) {
-    return `⚽ ${match.homeTeam.name} - ${match.awayTeam.name}`;
+  if (match.score) {
+    return `⚽ FINAL · ${match.homeTeam.name} ${match.score.home} - ${match.score.away} ${match.awayTeam.name}`;
   }
-  return `⚽ FINAL · ${match.homeTeam.name} ${match.score.home} - ${match.score.away} ${match.awayTeam.name}`;
+  if (match.status === 'postponed') {
+    return `⏸ AJORNAT · ${match.homeTeam.name} - ${match.awayTeam.name}`;
+  }
+  return `⚽ ${match.homeTeam.name} - ${match.awayTeam.name}`;
 }
 
 function buildVEventLines(match: Match, config: VEventConfig): string[] {

@@ -51,3 +51,16 @@ test('mapFcfStatus: does NOT log anything for the confirmed combination', () => 
 
   assert.equal(warnCalls, 0);
 });
+
+test('mapFcfStatus: CERRADA=0, ESTADO=2 maps to "postponed" (confirmed against real FCF data)', () => {
+  assert.equal(mapFcfStatus({ CODACTA: '4293183', CERRADA: '0', ESTADO: '2' }), 'postponed');
+});
+
+test('mapFcfStatus: does NOT log anything for the "postponed" combination either', () => {
+  let warnCalls = 0;
+  const logger = { info: () => {}, warn: () => warnCalls++, error: () => {} };
+
+  mapFcfStatus({ CODACTA: '4293183', CERRADA: '0', ESTADO: '2' }, logger);
+
+  assert.equal(warnCalls, 0);
+});

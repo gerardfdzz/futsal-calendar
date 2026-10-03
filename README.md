@@ -4,7 +4,7 @@ Sync a Catalan Futsal Federation (FCF) team's matches to a subscribed calendar (
 
 Node/TypeScript backend on Vercel serverless functions + Angular 17 frontend to pick a team and get the subscription URL.
 
-**Status: working end to end.** Deployed at `partitsalcalendari.com`, with a real subscription verified on an iPhone. 240 tests, `tsc --strict` with no `any`.
+**Status: working end to end.** Deployed at `partitsalcalendari.com`, with a real subscription verified on an iPhone. 244 tests, `tsc --strict` with no `any`.
 
 ## How it works
 
@@ -110,7 +110,7 @@ None is required — the app works with its defaults. Set them in Vercel (Projec
 
 ```bash
 npm run typecheck   # tsc --noEmit, TypeScript strict, no any
-npm test            # 240 tests, node:test via tsx
+npm test            # 244 tests, node:test via tsx
 npm run smoke:fcf    # real call to the FCF — prints matches for a real group
 npm run smoke:ics    # generates a real .ics for a team and writes it to disk
 ```
@@ -201,6 +201,8 @@ The backend script that runs `tsc --noEmit` is called `typecheck`, not `build` �
 
 **Withdrawn teams are excluded from the team list, not just from the calendar**: the FCF keeps a team that has withdrawn mid-season in `listTeams`'s roster, but overwrites every one of its scheduled matches so the team's own id shows up with its name literally replaced by `"Descans"` (confirmed live: a team appears this way in every remaining jornada, not just one bye week — the generic `"-1"` bye placeholder used for an odd team count is a different, unrelated code). `isBye` already filtered these out of the calendar correctly, but the team-selector list still showed the team itself (with no crest, since the only crest source is match data and a withdrawn team never appears as a real opponent again). `findWithdrawnTeamIds` in `fcf-bye.ts` scans a group's raw match response for any real team id paired with the name `"Descans"` and reports it; `FederationProvider` gained a `getWithdrawnTeamIds(groupId)` method alongside `getMatches`, and `handleTeamsRequest` now fetches both (concurrently, each best-effort — a failure on either never fails the request) and drops withdrawn ids from the team list before returning it. This costs one extra FCF request per `/api/groups/{grupId}/teams` call rather than reusing the `getMatches` response, since the interface stays additive and `Match[]` consumers (the calendar, the team page) are untouched; acceptable for a single bounded per-request call, unlike the bulk-crawl pattern that caused the team-search rate-limit scare above.
 
+**Postponed matches (`AJORNAT`) are now a real status, not `unknown`**: confirmed live against grup 60090763 — two matches the FCF's own site flags with a red `AJORNAT` badge both carry `CERRADA="0", ESTADO="2"`, distinct from a normal scheduled match's `CERRADA="0", ESTADO="0"`. `mapFcfStatus` now maps that combination to `'postponed'` instead of falling through to `'unknown'`. The rest of the pipeline already supported this status end to end and needed no further change: `match-content-hash.ts` already hashes `status`, so the ETag already busts correctly when a match flips to postponed; `mapMatchStatusToIcsStatus` already maps `'postponed'` to `STATUS:TENTATIVE`; the frontend's `StatusBadgeComponent` already had an "Ajornat" label and its own `--postponed` CSS class, only ever unreachable because the backend never produced the status. Two things were still missing: the badge's color token was amber (meant for an earlier, vaguer sense of "uncertain"), recolored to red to match the FCF's own convention and read as clearly as `cancelled` does; and `generateIcs`'s `SUMMARY` didn't say anything about postponement, so a subscriber would see an ordinary-looking fixture. `buildSummaryText` now prefixes a postponed match's title with `⏸ AJORNAT ·` (skipped if the match already has a score, which wins and shows `FINAL` instead — a scored match is settled, not postponed). `DTSTART`/`DTEND` are left exactly as the FCF reports them: the FCF keeps `COMIENZO1` at the original kickoff while a match is flagged postponed (confirmed on both real examples) and only moves it once a new date is actually set, so the calendar entry stays on its original day with the new title until that happens — the stable `UID` already means that eventual date change updates the same event rather than creating a new one, with no further code needed.
+
 ## What was intentionally left out
 
 - Cache/cron/persistence beyond `Cache-Control` + ETag (see "Design decisions").
@@ -211,7 +213,7 @@ The backend script that runs `tsc --noEmit` is called `typecheck`, not `build` �
 
 ## Open questions
 
-1. FCF status codes beyond `scheduled`/`finished` — `CERRADA=1, ESTADO=1` is now confirmed as `finished` against real data (grup 60090763, 2026-09-26/27, 6/6 played matches, each with a real score); `postponed`/`suspended`/`cancelled` are still unconfirmed.
+1. FCF status codes beyond `scheduled`/`finished`/`postponed` — `CERRADA=1, ESTADO=1` is confirmed as `finished` and `CERRADA=0, ESTADO=2` as `postponed` (`AJORNAT`), both against real data (grup 60090763); `suspended`/`cancelled` are still unconfirmed.
 2. Confirm `isBye` against a real "Descans" (bye) case.
 3. Human-readable group name (e.g. "TGN Gr. 14") — the FCF doesn't expose it outside the competition page, which this app doesn't scrape.
 4. `404` or `200` with an empty calendar for a team with no matches? It's a product decision, not a technical one; right now it's `200` on purpose (see `calendar.service.ts`).
