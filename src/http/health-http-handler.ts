@@ -2,7 +2,7 @@ import type { CompetitionCatalogProvider } from '../federation/competition-catal
 import type { FederationProvider } from '../federation/federation-provider.js';
 import { consoleHttpLogger, type HttpLogger } from './http-logger.js';
 
-const ALLOWED_METHODS = ['GET'];
+const ALLOWED_METHODS = ['GET', 'HEAD'];
 const HEALTH_CHECK_GROUP_ID = '58162580';
 
 export interface HealthHttpRequest {
@@ -28,7 +28,9 @@ export async function handleHealthRequest(
   request: HealthHttpRequest,
   logger: HttpLogger = consoleHttpLogger,
 ): Promise<HealthHttpResponse> {
-  if (request.method === undefined || !ALLOWED_METHODS.includes(request.method.toUpperCase())) {
+  const method = request.method?.toUpperCase();
+
+  if (method === undefined || !ALLOWED_METHODS.includes(method)) {
     return {
       status: 405,
       headers: { Allow: ALLOWED_METHODS.join(', '), 'Content-Type': 'text/plain; charset=utf-8' },
@@ -51,7 +53,7 @@ export async function handleHealthRequest(
   return {
     status: healthy ? 200 : 503,
     headers: { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store' },
-    body: JSON.stringify({ status: healthy ? 'ok' : 'down', checkedAt: new Date().toISOString(), checks }),
+    body: method === 'HEAD' ? '' : JSON.stringify({ status: healthy ? 'ok' : 'down', checkedAt: new Date().toISOString(), checks }),
   };
 }
 

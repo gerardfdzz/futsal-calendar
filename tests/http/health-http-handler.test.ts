@@ -53,5 +53,26 @@ test('handleHealthRequest: an unsupported method returns 405', async () => {
   const response = await handleHealthRequest(catalog, federation, { method: 'POST', url: '/api/health' }, noopHttpLogger);
 
   assert.equal(response.status, 405);
-  assert.equal(response.headers['Allow'], 'GET');
+  assert.equal(response.headers['Allow'], 'GET, HEAD');
+});
+
+test('handleHealthRequest: a HEAD request runs the real checks but returns an empty body, same status as GET would', async () => {
+  const catalog = new FakeCompetitionCatalogProvider({ disciplines: [{ id: '19308236', name: 'Futbol Sala' }] });
+  const federation = new FakeFederationProvider([buildMatch()]);
+
+  const response = await handleHealthRequest(catalog, federation, { method: 'HEAD', url: '/api/health' }, noopHttpLogger);
+
+  assert.equal(response.status, 200);
+  assert.equal(response.headers['Cache-Control'], 'no-store');
+  assert.equal(response.body, '');
+});
+
+test('handleHealthRequest: a HEAD request still reports 503 when a check fails, matching what GET would return', async () => {
+  const catalog = new FakeCompetitionCatalogProvider({ disciplines: [{ id: '19308236', name: 'Futbol Sala' }] });
+  const federation = new FakeFederationProvider([], new Error('FCF endpoint returned an unexpected shape for groupId="58162580"'));
+
+  const response = await handleHealthRequest(catalog, federation, { method: 'HEAD', url: '/api/health' }, noopHttpLogger);
+
+  assert.equal(response.status, 503);
+  assert.equal(response.body, '');
 });
