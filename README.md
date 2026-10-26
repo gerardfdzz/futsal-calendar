@@ -4,7 +4,7 @@ Sync a Catalan Futsal Federation (FCF) team's matches to a subscribed calendar (
 
 Node/TypeScript backend on Vercel serverless functions + Angular 17 frontend to pick a team and get the subscription URL.
 
-**Status: working end to end.** Deployed at `partitsalcalendari.com`, with a real subscription verified on an iPhone. 253 tests, `tsc --strict` with no `any`.
+**Status: working end to end.** Deployed at `partitsalcalendari.com`, with a real subscription verified on an iPhone. 257 tests, `tsc --strict` with no `any`.
 
 ## How it works
 
@@ -41,7 +41,8 @@ api/
 ├── groups/[grupId]/teams.ts
 ├── matches/[groupId]/[teamId].ts         JSON (consumed by the frontend)
 ├── team-page.ts                          bot-only HTML snapshot (see "SEO" below)
-└── sitemap.ts                            dynamic /sitemap.xml
+├── sitemap.ts                            dynamic /sitemap.xml
+└── health.ts                             deep FCF health check (see "Monitoring" below)
 src/
 ├── domain/         team.ts, venue.ts, match-status.ts, match.ts, match-score.ts, competition-catalog.ts
 ├── shared/         timezone.ts, p-map-limit.ts
@@ -57,7 +58,7 @@ src/
 ├── sitemap/        sitemap-xml.ts, sitemap-crawler.ts (walks the FCF catalog for team pages)
 └── http/           calendar-route.ts, calendar-http-handler.ts, catalog-route.ts,
                     catalog-http-handler.ts, matches-http-handler.ts, team-page-http-handler.ts,
-                    sitemap-http-handler.ts, http-logger.ts
+                    sitemap-http-handler.ts, health-http-handler.ts, http-logger.ts
 scripts/            run-tests.mjs, smoke-fcf.ts, smoke-ics.ts, dev-server.ts
 tests/              same structure as src/, one *.test.ts per module
 web/
@@ -110,7 +111,7 @@ None is required — the app works with its defaults. Set them in Vercel (Projec
 
 ```bash
 npm run typecheck   # tsc --noEmit, TypeScript strict, no any
-npm test            # 253 tests, node:test via tsx
+npm test            # 257 tests, node:test via tsx
 npm run smoke:fcf    # real call to the FCF — prints matches for a real group
 npm run smoke:ics    # generates a real .ics for a team and writes it to disk
 ```
@@ -132,6 +133,12 @@ npm run smoke:ics    # generates a real .ics for a team and writes it to disk
 `outputDirectory` points at `browser/` because Angular 17's `application` builder always writes there, even without SSR. The rewrite is a standard SPA fallback: Vercel first serves any static file or `api/` function that exists, and only falls back to `index.html` when nothing matches.
 
 The backend script that runs `tsc --noEmit` is called `typecheck`, not `build` — Vercel automatically runs `npm run build` if that script exists (even without configuring it in the dashboard), and with `NODE_ENV=production` it doesn't install `devDependencies`, so `tsc` wouldn't even be available. The `api/` functions are compiled on the fly from `.ts` by Vercel's own Node runtime.
+
+## Monitoring
+
+`GET /api/health` is a deep health check, not just "is the server up": it calls the FCF for real (`listDisciplines()` and `getMatches()` for a known real `grupId`, concurrently) and only returns `200 {"status":"ok",...}` if both actually succeed. If either fails — the FCF blocks us, changes its response shape again, times out, anything — it returns `503 {"status":"down","checks":{...}}` with each failing check's error message (truncated), so the response itself is enough to diagnose what broke without needing to check Vercel's logs first. Each FCF call uses a short 5s timeout and no retries (`maxRetries: 0`), deliberately different from the 8s/2-retries the rest of the app uses: a health check that takes 24s+ to fail is worse than a Vercel function timeout, and a transient blip shouldn't need a retry here — the monitor will just ask again on its own next cycle. `Cache-Control: no-store`, since caching a health check defeats the point.
+
+This exists so a future FCF-side break (there have already been three: a date-format change, a `Referer`-based block, and a `partidos` response reshape — see "Design decisions" below) gets noticed without anyone having to remember to check the site. The endpoint itself doesn't alert anyone — set up a free external uptime monitor (e.g. [UptimeRobot](https://uptimerobot.com) or [Better Uptime](https://betteruptime.com)) to `GET https://partitsalcalendari.com/api/health` every 5 minutes and notify on anything other than `200`. That's a one-time, no-code setup on the monitor's side; deliberately not a Vercel Cron Job calling a webhook, which would mean writing and maintaining notification code (Slack/Discord/email) in this repo for something a free third-party service already does well — not worth it for a hobby project's single health endpoint.
 
 ## Design decisions
 
