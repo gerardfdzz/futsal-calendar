@@ -25,6 +25,7 @@ export interface FcfFederationProviderOptions {
 }
 
 const DEFAULT_BASE_URL = 'https://www.fcf.cat/api/competition/partidos';
+const FCF_REFERER = 'https://www.fcf.cat/ca/competicio';
 const DEFAULT_TIMEOUT_MS = 8_000;
 const DEFAULT_MAX_RETRIES = 2;
 const DEFAULT_RETRY_DELAY_MS = 300;
@@ -137,6 +138,7 @@ export class FcfFederationProvider implements FederationProvider {
         headers: {
           Accept: 'application/json',
           'User-Agent': this.userAgent,
+          Referer: FCF_REFERER,
         },
       });
     } finally {

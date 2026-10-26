@@ -48,6 +48,7 @@ test('getMatches: builds the request URL with the given groupId and required hea
   const headers = new Headers(capturedHeaders);
   assert.equal(headers.get('accept'), 'application/json');
   assert.ok(headers.get('user-agent'));
+  assert.equal(headers.get('referer'), 'https://www.fcf.cat/ca/competicio');
 });
 
 test('getMatches: rejects an empty groupId without making a request', async () => {

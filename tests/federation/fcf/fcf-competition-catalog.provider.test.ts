@@ -19,6 +19,22 @@ test('listDisciplines: maps {value,label} pairs to Discipline[]', async () => {
   assert.deepEqual(disciplines, [{ id: '19308236', name: 'Futbol Sala' }]);
 });
 
+test('listDisciplines: sends Accept, User-Agent and a same-site Referer (the FCF blocks refererless requests with a 403)', async () => {
+  let capturedHeaders: RequestInit['headers'];
+  const fetchFn = async (_url: string, init: RequestInit) => {
+    capturedHeaders = init.headers;
+    return jsonResponse([]);
+  };
+  const provider = new FcfCompetitionCatalogProvider({ fetchFn, logger: noopFcfLogger });
+
+  await provider.listDisciplines();
+
+  const headers = new Headers(capturedHeaders);
+  assert.equal(headers.get('accept'), 'application/json');
+  assert.ok(headers.get('user-agent'));
+  assert.equal(headers.get('referer'), 'https://www.fcf.cat/ca/competicio');
+});
+
 test('listCompetitions: builds the request URL with disciplinaId and temporada', async () => {
   let capturedUrl = '';
   const fetchFn = async (url: string) => {

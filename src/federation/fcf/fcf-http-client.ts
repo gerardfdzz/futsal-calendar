@@ -21,6 +21,7 @@ export interface FcfHttpClientOptions {
 const DEFAULT_TIMEOUT_MS = 8_000;
 const DEFAULT_MAX_RETRIES = 2;
 const DEFAULT_RETRY_DELAY_MS = 300;
+const FCF_REFERER = 'https://www.fcf.cat/ca/competicio';
 
 function buildDefaultUserAgent(): string {
   const contact = process.env['FCF_USER_AGENT_CONTACT'];
@@ -101,6 +102,7 @@ export class FcfHttpClient {
         headers: {
           Accept: 'application/json',
           'User-Agent': this.userAgent,
+          Referer: FCF_REFERER,
         },
       });
     } finally {
