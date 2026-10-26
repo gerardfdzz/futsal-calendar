@@ -20,6 +20,16 @@
     color: var(--color-status-finished-text);
   }
 
+  &--lost {
+    background: var(--color-status-lost-bg);
+    color: var(--color-status-lost-text);
+  }
+
+  &--draw {
+    background: var(--color-status-draw-bg);
+    color: var(--color-status-draw-text);
+  }
+
   &--postponed {
     background: var(--color-status-postponed-bg);
     color: var(--color-status-postponed-text);

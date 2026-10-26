@@ -17,7 +17,9 @@ const STATUS_LABELS: Record<MatchStatus, string> = {
     <span
       class="status-badge"
       [class.status-badge--scheduled]="status() === 'scheduled'"
-      [class.status-badge--finished]="status() === 'finished'"
+      [class.status-badge--finished]="status() === 'finished' && !lost() && !draw()"
+      [class.status-badge--lost]="status() === 'finished' && lost()"
+      [class.status-badge--draw]="status() === 'finished' && draw()"
       [class.status-badge--postponed]="status() === 'postponed'"
       [class.status-badge--suspended]="status() === 'suspended'"
       [class.status-badge--cancelled]="status() === 'cancelled'"
@@ -28,6 +30,8 @@ const STATUS_LABELS: Record<MatchStatus, string> = {
 })
 export class StatusBadgeComponent {
   readonly status = input.required<MatchStatus>();
+  readonly lost = input<boolean>(false);
+  readonly draw = input<boolean>(false);
 
   readonly label = computed(() => STATUS_LABELS[this.status()]);
 }

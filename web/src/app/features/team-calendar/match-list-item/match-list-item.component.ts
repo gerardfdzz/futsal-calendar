@@ -22,5 +22,23 @@ export class MatchListItemComponent {
 
   readonly showStatusBadge = computed(() => this.match().status !== 'scheduled');
 
+  readonly lost = computed(() => {
+    const match = this.match();
+    if (match.status !== 'finished' || !match.score) {
+      return false;
+    }
+    const ourGoals = this.isHome() ? match.score.home : match.score.away;
+    const theirGoals = this.isHome() ? match.score.away : match.score.home;
+    return ourGoals < theirGoals;
+  });
+
+  readonly draw = computed(() => {
+    const match = this.match();
+    if (match.status !== 'finished' || !match.score) {
+      return false;
+    }
+    return match.score.home === match.score.away;
+  });
+
   readonly hideCrest = hideBrokenCrest;
 }
