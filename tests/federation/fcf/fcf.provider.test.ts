@@ -166,6 +166,17 @@ test('getMatches: throws FcfProviderError for an unexpected top-level shape (e.g
   await assert.rejects(() => provider.getMatches('58162580'), FcfProviderError);
 });
 
+test('getMatches: an unexpected-shape error includes a snippet of the actual response body, to diagnose a degraded/throttled FCF response instead of guessing blind', async () => {
+  const fetchFn = async () => jsonResponse({ message: 'Too many requests' });
+  const provider = new FcfFederationProvider({ fetchFn, logger: noopFcfLogger });
+
+  await assert.rejects(() => provider.getMatches('58162580'), (error: unknown) => {
+    assert.ok(error instanceof FcfProviderError);
+    assert.match(error.message, /Too many requests/);
+    return true;
+  });
+});
+
 test('getWithdrawnTeamIds: reports a real team id whose own name has become "Descans" across the whole response', async () => {
   const withdrawnMatch = buildFcfMatchDto({ CODACTA: '1', CODEQUIPO_CASA: '51463150', NOMBRE_CASA: 'Descans' });
   const normalMatch = buildFcfMatchDto({ CODACTA: '2' });

@@ -63,7 +63,7 @@ export class FcfCompetitionCatalogProvider implements CompetitionCatalogProvider
 
     if (!isArrayOfCatalogOptions(body)) {
       throw new FcfCatalogProviderError(
-        `FCF endpoint returned an unexpected shape for ${context} (expected an array of {value, label})`,
+        `FCF endpoint returned an unexpected shape for ${context} (expected an array of {value, label}): ${safeStringifySnippet(body)}`,
       );
     }
     return body;
@@ -76,6 +76,14 @@ function requireNonEmpty(value: string, fieldName: string): string {
     throw new FcfCatalogProviderError(`${fieldName} must be a non-empty string`);
   }
   return trimmed;
+}
+
+function safeStringifySnippet(value: unknown): string {
+  try {
+    return JSON.stringify(value).slice(0, 200);
+  } catch {
+    return '(could not stringify response body)';
+  }
 }
 
 function isArrayOfCatalogOptions(value: unknown): value is FcfCatalogOptionDto[] {

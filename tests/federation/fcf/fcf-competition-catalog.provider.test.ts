@@ -106,6 +106,17 @@ test('throws FcfCatalogProviderError for an unexpected response shape', async ()
   await assert.rejects(() => provider.listDisciplines(), FcfCatalogProviderError);
 });
 
+test('an unexpected-shape error includes a snippet of the actual response body, to diagnose a degraded/throttled FCF response instead of guessing blind', async () => {
+  const fetchFn = async () => jsonResponse({ message: 'Too many requests' });
+  const provider = new FcfCompetitionCatalogProvider({ fetchFn, logger: noopFcfLogger });
+
+  await assert.rejects(() => provider.listDisciplines(), (error: unknown) => {
+    assert.ok(error instanceof FcfCatalogProviderError);
+    assert.match(error.message, /Too many requests/);
+    return true;
+  });
+});
+
 test('throws FcfCatalogProviderError for an array with malformed entries', async () => {
   const fetchFn = async () => jsonResponse([{ value: '1'  }]);
   const provider = new FcfCompetitionCatalogProvider({ fetchFn, logger: noopFcfLogger });

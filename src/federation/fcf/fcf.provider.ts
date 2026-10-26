@@ -156,7 +156,7 @@ export class FcfFederationProvider implements FederationProvider {
 
     if (!isPlainRecordOfArrays(body)) {
       throw new FcfProviderError(
-        `FCF endpoint returned an unexpected shape for groupId="${groupId}" (expected an object mapping jornada -> match[])`,
+        `FCF endpoint returned an unexpected shape for groupId="${groupId}" (expected an object mapping jornada -> match[]): ${safeStringifySnippet(body)}`,
       );
     }
 
@@ -214,6 +214,14 @@ async function safeReadSnippet(response: Response): Promise<string> {
     return text.slice(0, 200);
   } catch {
     return '(could not read response body)';
+  }
+}
+
+function safeStringifySnippet(value: unknown): string {
+  try {
+    return JSON.stringify(value).slice(0, 200);
+  } catch {
+    return '(could not stringify response body)';
   }
 }
 
