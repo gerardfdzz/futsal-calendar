@@ -32,6 +32,21 @@ test('getMatches: flattens jornada groups, excludes byes, and sorts by kickoff t
   assert.equal(matches[1]?.round, 1);
 });
 
+test('getMatches: also accepts the FCF\'s newer response shape, matches nested under a "partidos" key alongside a "jornada" metadata object', async () => {
+  const match = buildFcfMatchDto({ CODACTA: '4293174', COMIENZO1: '2026-10-24 17:00:00' });
+  const fetchFn = async () =>
+    jsonResponse({
+      partidos: { '1': [match] },
+      jornada: { codjornada: '4', fecha: '2026-10-24T00:00:00.000Z', total: 22 },
+    });
+
+  const provider = new FcfFederationProvider({ fetchFn, logger: noopFcfLogger });
+  const matches = await provider.getMatches('60090763');
+
+  assert.equal(matches.length, 1);
+  assert.equal(matches[0]?.id, '4293174');
+});
+
 test('getMatches: builds the request URL with the given groupId and required headers', async () => {
   let capturedUrl = '';
   let capturedHeaders: RequestInit['headers'];

@@ -154,13 +154,14 @@ export class FcfFederationProvider implements FederationProvider {
       throw new FcfProviderError(`FCF endpoint returned invalid JSON for groupId="${groupId}"`, { cause: error });
     }
 
-    if (!isPlainRecordOfArrays(body)) {
+    const matchesRecord = extractMatchesRecord(body);
+    if (matchesRecord === undefined) {
       throw new FcfProviderError(
-        `FCF endpoint returned an unexpected shape for groupId="${groupId}" (expected an object mapping jornada -> match[]): ${safeStringifySnippet(body)}`,
+        `FCF endpoint returned an unexpected shape for groupId="${groupId}" (expected an object mapping jornada -> match[], either directly or nested under a "partidos" key): ${safeStringifySnippet(body)}`,
       );
     }
 
-    return body;
+    return matchesRecord;
   }
 
   private flattenAndMap(response: FcfMatchesResponse, groupId: string): Match[] {
@@ -206,6 +207,19 @@ function isPlainRecordOfArrays(value: unknown): value is FcfMatchesResponse {
     return false;
   }
   return Object.values(value as Record<string, unknown>).every((entry): entry is FcfMatchDto[] => Array.isArray(entry));
+}
+
+function extractMatchesRecord(body: unknown): FcfMatchesResponse | undefined {
+  if (isPlainRecordOfArrays(body)) {
+    return body;
+  }
+  if (typeof body === 'object' && body !== null && !Array.isArray(body)) {
+    const nested = (body as Record<string, unknown>)['partidos'];
+    if (isPlainRecordOfArrays(nested)) {
+      return nested;
+    }
+  }
+  return undefined;
 }
 
 async function safeReadSnippet(response: Response): Promise<string> {
