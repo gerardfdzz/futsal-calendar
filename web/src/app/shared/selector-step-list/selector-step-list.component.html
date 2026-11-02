@@ -1,11 +1,15 @@
 @if (items().length === 0) {
   <p class="selector-step-list__empty">{{ emptyLabel() }}</p>
 } @else {
-  <div class="selector-step-list" [class.selector-step-list--grid]="layout() === 'grid'">
+  <div
+    class="selector-step-list"
+    [class.selector-step-list--grid]="layout() === 'grid'"
+    [class.selector-step-list--grid-mobile]="layout() === 'grid' && twoColumnsOnMobile()"
+  >
     @for (item of items(); track item.id) {
       <button type="button" class="selector-step-list__card" (click)="select.emit(item)">
-        <span class="selector-step-list__icon">
-          @if (hasCrest(item)) {
+        @if (hasCrest(item)) {
+          <span class="selector-step-list__icon">
             <img
               class="selector-step-list__crest"
               [src]="item.crest"
@@ -13,11 +17,11 @@
               aria-hidden="true"
               (error)="onCrestError(item.id)"
             />
-          } @else {
-            <span class="material-symbols-outlined" aria-hidden="true">sports_soccer</span>
-          }
+          </span>
+        }
+        <span class="selector-step-list__name">
+          <span class="selector-step-list__name-text">{{ item.name }}</span>
         </span>
-        <span class="selector-step-list__name">{{ item.name }}</span>
         <span class="material-symbols-outlined selector-step-list__chevron" aria-hidden="true">chevron_right</span>
       </button>
     }

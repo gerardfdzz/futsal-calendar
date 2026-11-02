@@ -18,6 +18,7 @@ export class SelectorStepListComponent {
   readonly items = input.required<readonly SelectableOption[]>();
   readonly emptyLabel = input('No hi ha resultats.');
   readonly layout = input<SelectorStepListLayout>('list');
+  readonly twoColumnsOnMobile = input(false);
   readonly select = output<SelectableOption>();
 
   private readonly brokenCrestIds = signal<ReadonlySet<string>>(new Set());

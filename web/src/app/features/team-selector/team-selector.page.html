@@ -1,12 +1,76 @@
-<div class="team-selector" [class.team-selector--wide]="step() !== 'discipline'">
-  <header class="team-selector__header">
-    @if (step() !== 'discipline') {
+<div class="team-selector">
+  @if (step() === 'discipline') {
+    <section class="team-selector__hero">
+      <svg
+        class="team-selector__hero-pattern"
+        viewBox="0 0 100 100"
+        preserveAspectRatio="none"
+        aria-hidden="true"
+        focusable="false"
+      >
+        <rect width="100" height="100" fill="var(--color-secondary)" />
+        <polygon points="1.67,0 11.11,0 41.11,100 31.67,100" fill="var(--color-tertiary)" />
+        <polygon points="12.78,0 22.22,0 52.22,100 42.78,100" fill="var(--color-primary)" />
+        <polygon points="23.89,0 33.33,0 63.33,100 53.89,100" fill="var(--color-tertiary)" />
+        <polygon points="35.00,0 44.44,0 74.44,100 65.00,100" fill="var(--color-primary)" />
+        <polygon points="46.11,0 55.56,0 85.56,100 76.11,100" fill="var(--color-tertiary)" />
+        <polygon points="57.22,0 66.67,0 96.67,100 87.22,100" fill="var(--color-primary)" />
+        <polygon points="68.33,0 77.78,0 107.78,100 98.33,100" fill="var(--color-tertiary)" />
+        <polygon points="79.44,0 88.89,0 118.89,100 109.44,100" fill="var(--color-primary)" />
+        <polygon points="90.56,0 100.00,0 130.00,100 120.56,100" fill="var(--color-tertiary)" />
+      </svg>
+      <div class="team-selector__hero-scrim" aria-hidden="true"></div>
+      <div class="team-selector__hero-content">
+        <p class="team-selector__hero-eyebrow">
+          <span class="team-selector__hero-dot" aria-hidden="true"></span>
+          Calendari · Sincronitzat
+        </p>
+        <h1 class="team-selector__hero-title">
+          Tots els partits del teu equip, <span class="team-selector__hero-highlight">directes</span> al teu calendari.
+        </h1>
+        <p class="team-selector__hero-subtitle">
+          Troba el teu equip de qualsevol delegació de la Federació Catalana de Futbol i subscriu-te amb un sol clic —
+          nosaltres ens encarreguem que el calendari estigui sempre al dia.
+        </p>
+      </div>
+    </section>
+
+    <section class="team-selector__how" aria-labelledby="team-selector-how-title">
+      <h2 id="team-selector-how-title" class="team-selector__how-title">Com funciona?</h2>
+      <ol class="team-selector__how-list">
+        <li class="team-selector__how-step">
+          <span class="team-selector__how-number">1</span>
+          <div class="team-selector__how-text">
+            <h3>Busca el teu equip</h3>
+            <p>Tria la disciplina, la competició, el grup i l'equip entre totes les delegacions catalanes.</p>
+          </div>
+        </li>
+        <li class="team-selector__how-step team-selector__how-step--2">
+          <span class="team-selector__how-number">2</span>
+          <div class="team-selector__how-text">
+            <h3>Afegeix-lo al calendari</h3>
+            <p>Un sol clic per subscriure't amb Apple Calendar, Google Calendar o qualsevol altra app de calendari.</p>
+          </div>
+        </li>
+        <li class="team-selector__how-step team-selector__how-step--3">
+          <span class="team-selector__how-number">3</span>
+          <div class="team-selector__how-text">
+            <h3>S'actualitza sol</h3>
+            <p>Si la FCF canvia l'horari, el pavelló o l'estat d'un partit, el teu calendari es manté sincronitzat automàticament.</p>
+          </div>
+        </li>
+      </ol>
+    </section>
+
+    <h2 class="team-selector__section-title">Tria la disciplina</h2>
+  } @else {
+    <header class="team-selector__header">
       <button type="button" class="team-selector__back" (click)="goBack()" aria-label="Enrere">
         <span class="material-symbols-outlined" aria-hidden="true">arrow_back</span>
       </button>
-    }
-    <h1 class="team-selector__title">{{ title() }}</h1>
-  </header>
+      <h1 class="team-selector__title">{{ title() }}</h1>
+    </header>
+  }
 
   @if (error()) {
     <p class="team-selector__error">{{ error() }}</p>
@@ -19,6 +83,8 @@
       @case ('discipline') {
         <app-selector-step-list
           [items]="disciplines()"
+          layout="grid"
+          [twoColumnsOnMobile]="true"
           emptyLabel="No s'han trobat disciplines."
           (select)="selectDiscipline($event.id)"
         ></app-selector-step-list>
@@ -27,6 +93,7 @@
         <app-selector-step-list
           [items]="competitions()"
           layout="grid"
+          [twoColumnsOnMobile]="true"
           emptyLabel="No hi ha competicions per a aquesta disciplina."
           (select)="selectCompetition($event.id)"
         ></app-selector-step-list>
@@ -35,6 +102,7 @@
         <app-selector-step-list
           [items]="groups()"
           layout="grid"
+          [twoColumnsOnMobile]="true"
           emptyLabel="No hi ha grups per a aquesta competició."
           (select)="selectGroup($event.id)"
         ></app-selector-step-list>

@@ -39,4 +39,27 @@
     max-width: 1200px;
     margin: 0 auto;
   }
+
+  &__footer {
+    padding: var(--space-lg) var(--space-container-margin);
+    text-align: center;
+    border-top: 1px solid var(--color-surface-variant);
+  }
+
+  &__footer-text {
+    margin: 0;
+    font-size: 13px;
+    color: var(--color-on-surface-variant);
+  }
+
+  &__footer-link {
+    color: var(--color-on-surface-variant);
+    font-weight: 600;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+
+    &:hover {
+      color: var(--color-primary);
+    }
+  }
 }

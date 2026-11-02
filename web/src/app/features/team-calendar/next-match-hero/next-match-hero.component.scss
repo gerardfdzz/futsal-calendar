@@ -4,6 +4,7 @@
 }
 
 .next-match-hero {
+  container-type: inline-size;
   display: flex;
   flex-direction: column;
   flex: 1;
@@ -126,5 +127,26 @@
     .material-symbols-outlined {
       font-size: 20px;
     }
+  }
+}
+
+@container (max-width: 480px) {
+  .next-match-hero__teams {
+    flex-direction: column;
+    align-items: stretch;
+    gap: var(--space-sm);
+  }
+
+  .next-match-hero__team,
+  .next-match-hero__team--away {
+    flex-direction: row;
+  }
+
+  .next-match-hero__team--away .next-match-hero__name {
+    text-align: left;
+  }
+
+  .next-match-hero__vs {
+    align-self: center;
   }
 }
