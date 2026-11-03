@@ -1,4 +1,9 @@
-<div class="match-list-item">
+<div
+  class="match-list-item"
+  [class.match-list-item--won]="result() === 'won'"
+  [class.match-list-item--lost]="result() === 'lost'"
+  [class.match-list-item--draw]="result() === 'draw'"
+>
   <div class="match-list-item__meta">
     <span class="match-list-item__round">Jornada {{ match().round }}</span>
     @if (showStatusBadge()) {

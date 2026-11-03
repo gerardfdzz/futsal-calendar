@@ -4,6 +4,8 @@ import { formatMatchDay, formatMatchTime } from '../../../core/utils/date-format
 import { hideBrokenCrest } from '../../../core/utils/crest';
 import { StatusBadgeComponent } from '../../../shared/status-badge/status-badge.component';
 
+type MatchResult = 'won' | 'lost' | 'draw' | null;
+
 @Component({
   selector: 'app-match-list-item',
   standalone: true,
@@ -20,7 +22,10 @@ export class MatchListItemComponent {
   readonly dayLabel = computed(() => formatMatchDay(this.kickoff()));
   readonly timeLabel = computed(() => formatMatchTime(this.kickoff()));
 
-  readonly showStatusBadge = computed(() => this.match().status !== 'scheduled');
+  readonly showStatusBadge = computed(() => {
+    const status = this.match().status;
+    return status !== 'scheduled' && status !== 'finished';
+  });
 
   readonly lost = computed(() => {
     const match = this.match();
@@ -38,6 +43,16 @@ export class MatchListItemComponent {
       return false;
     }
     return match.score.home === match.score.away;
+  });
+
+  readonly result = computed<MatchResult>(() => {
+    if (this.match().status !== 'finished' || !this.match().score) {
+      return null;
+    }
+    if (this.draw()) {
+      return 'draw';
+    }
+    return this.lost() ? 'lost' : 'won';
   });
 
   readonly hideCrest = hideBrokenCrest;

@@ -11,6 +11,10 @@
       <h1 class="team-calendar__name">{{ teamName() ?? 'Equip' }}</h1>
     </header>
 
+    <section class="team-calendar__section">
+      <app-add-to-calendar-button [groupId]="groupId" [teamId]="teamId"></app-add-to-calendar-button>
+    </section>
+
     @if (pastMatches().length > 0) {
       <section class="team-calendar__section">
         <h2 class="team-calendar__section-title">Partits jugats</h2>
@@ -33,10 +37,6 @@
       } @else {
         <p class="team-calendar__empty">No hi ha cap partit programat de moment.</p>
       }
-    </section>
-
-    <section class="team-calendar__section">
-      <app-add-to-calendar-button [groupId]="groupId" [teamId]="teamId"></app-add-to-calendar-button>
     </section>
   }
 </div>
