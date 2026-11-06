@@ -22,6 +22,8 @@ const DEFAULT_TIMEOUT_MS = 8_000;
 const DEFAULT_MAX_RETRIES = 2;
 const DEFAULT_RETRY_DELAY_MS = 300;
 const FCF_REFERER = 'https://www.fcf.cat/ca/competicio';
+const FCF_ORIGIN = 'https://www.fcf.cat';
+const FCF_ACCEPT_LANGUAGE = 'ca-ES,ca;q=0.9,es-ES;q=0.8,es;q=0.7';
 
 function buildDefaultUserAgent(): string {
   const contact = process.env['FCF_USER_AGENT_CONTACT'];
@@ -101,8 +103,13 @@ export class FcfHttpClient {
         signal: controller.signal,
         headers: {
           Accept: 'application/json',
+          'Accept-Language': FCF_ACCEPT_LANGUAGE,
           'User-Agent': this.userAgent,
           Referer: FCF_REFERER,
+          Origin: FCF_ORIGIN,
+          'Sec-Fetch-Site': 'same-origin',
+          'Sec-Fetch-Mode': 'cors',
+          'Sec-Fetch-Dest': 'empty',
         },
       });
     } finally {

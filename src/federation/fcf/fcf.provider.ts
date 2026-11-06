@@ -26,6 +26,8 @@ export interface FcfFederationProviderOptions {
 
 const DEFAULT_BASE_URL = 'https://www.fcf.cat/api/competition/partidos';
 const FCF_REFERER = 'https://www.fcf.cat/ca/competicio';
+const FCF_ORIGIN = 'https://www.fcf.cat';
+const FCF_ACCEPT_LANGUAGE = 'ca-ES,ca;q=0.9,es-ES;q=0.8,es;q=0.7';
 const DEFAULT_TIMEOUT_MS = 8_000;
 const DEFAULT_MAX_RETRIES = 2;
 const DEFAULT_RETRY_DELAY_MS = 300;
@@ -137,8 +139,13 @@ export class FcfFederationProvider implements FederationProvider {
         signal: controller.signal,
         headers: {
           Accept: 'application/json',
+          'Accept-Language': FCF_ACCEPT_LANGUAGE,
           'User-Agent': this.userAgent,
           Referer: FCF_REFERER,
+          Origin: FCF_ORIGIN,
+          'Sec-Fetch-Site': 'same-origin',
+          'Sec-Fetch-Mode': 'cors',
+          'Sec-Fetch-Dest': 'empty',
         },
       });
     } finally {
