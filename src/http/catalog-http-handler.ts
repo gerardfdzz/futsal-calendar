@@ -1,19 +1,9 @@
 import type { CompetitionCatalogProvider } from '../federation/competition-catalog-provider.js';
 import type { FederationProvider } from '../federation/federation-provider.js';
-import type { TeamOption } from '../domain/competition-catalog.js';
-import { DEFAULT_DISCIPLINA_ID, DEFAULT_TEMPORADA_ID } from '../federation/fcf/fcf-catalog-config.js';
-import {
-  InvalidRouteError,
-  parseCompetitionsQuery,
-  parseGroupsRoute,
-  parseTeamsRoute,
-} from './catalog-route.js';
 import { consoleHttpLogger, type HttpLogger } from './http-logger.js';
+import { SERVICE_DISCONTINUED_HEADERS, SERVICE_DISCONTINUED_MESSAGE } from './service-status.js';
 
 const ALLOWED_METHODS = ['GET', 'HEAD'];
-
-const CATALOG_CACHE_MAX_AGE_SECONDS = 60 * 60;
-const STALE_IF_ERROR_SECONDS = 3 * 24 * 60 * 60;
 
 export interface JsonHttpRequest {
   readonly method: string | undefined;
@@ -27,145 +17,44 @@ export interface JsonHttpResponse {
 }
 
 export async function handleDisciplinesRequest(
-  catalog: CompetitionCatalogProvider,
+  _catalog: CompetitionCatalogProvider,
   request: JsonHttpRequest,
-  logger: HttpLogger = consoleHttpLogger,
+  _logger: HttpLogger = consoleHttpLogger,
 ): Promise<JsonHttpResponse> {
   const methodError = checkMethod(request.method);
   if (methodError) return methodError;
-
-  try {
-    return jsonOk(await catalog.listDisciplines());
-  } catch (error) {
-    return upstreamError(logger, 'disciplines', error);
-  }
+  return discontinued();
 }
 
 export async function handleCompetitionsRequest(
-  catalog: CompetitionCatalogProvider,
+  _catalog: CompetitionCatalogProvider,
   request: JsonHttpRequest,
-  logger: HttpLogger = consoleHttpLogger,
+  _logger: HttpLogger = consoleHttpLogger,
 ): Promise<JsonHttpResponse> {
   const methodError = checkMethod(request.method);
   if (methodError) return methodError;
-
-  const query = parseCompetitionsQuery(request.url);
-  const disciplinaId = nonEmptyOrDefault(query.disciplinaId, DEFAULT_DISCIPLINA_ID);
-  const temporada = nonEmptyOrDefault(query.temporada, DEFAULT_TEMPORADA_ID);
-
-  try {
-    return jsonOk(await catalog.listCompetitions(disciplinaId, temporada));
-  } catch (error) {
-    return upstreamError(logger, `competicions (disciplinaId="${disciplinaId}", temporada="${temporada}")`, error);
-  }
+  return discontinued();
 }
 
 export async function handleGroupsRequest(
-  catalog: CompetitionCatalogProvider,
+  _catalog: CompetitionCatalogProvider,
   request: JsonHttpRequest,
-  logger: HttpLogger = consoleHttpLogger,
+  _logger: HttpLogger = consoleHttpLogger,
 ): Promise<JsonHttpResponse> {
   const methodError = checkMethod(request.method);
   if (methodError) return methodError;
-
-  let competicioId: string;
-  try {
-    ({ competicioId } = parseGroupsRoute(request.url));
-  } catch (error) {
-    return routeError(error);
-  }
-
-  try {
-    return jsonOk(await catalog.listGroups(competicioId));
-  } catch (error) {
-    return upstreamError(logger, `grupos (competicioId="${competicioId}")`, error);
-  }
+  return discontinued();
 }
 
 export async function handleTeamsRequest(
-  catalog: CompetitionCatalogProvider,
+  _catalog: CompetitionCatalogProvider,
   request: JsonHttpRequest,
-  logger: HttpLogger = consoleHttpLogger,
-  federation?: FederationProvider,
+  _logger: HttpLogger = consoleHttpLogger,
+  _federation?: FederationProvider,
 ): Promise<JsonHttpResponse> {
   const methodError = checkMethod(request.method);
   if (methodError) return methodError;
-
-  let grupId: string;
-  try {
-    ({ grupId } = parseTeamsRoute(request.url));
-  } catch (error) {
-    return routeError(error);
-  }
-
-  try {
-    const teams = await catalog.listTeams(grupId);
-    const activeTeamsWithCrests = federation ? await enrichTeams(teams, federation, grupId, logger) : teams;
-    return jsonOk(activeTeamsWithCrests);
-  } catch (error) {
-    return upstreamError(logger, `equipos (grupId="${grupId}")`, error);
-  }
-}
-
-async function enrichTeams(
-  teams: readonly TeamOption[],
-  federation: FederationProvider,
-  grupId: string,
-  logger: HttpLogger,
-): Promise<TeamOption[]> {
-  const [crestByTeamId, withdrawnTeamIds] = await Promise.all([
-    fetchCrestByTeamId(federation, grupId, logger),
-    fetchWithdrawnTeamIds(federation, grupId, logger),
-  ]);
-
-  return teams
-    .filter((team) => !withdrawnTeamIds.has(team.id))
-    .map((team) => {
-      const crest = crestByTeamId.get(team.id);
-      return crest !== undefined ? { ...team, crest } : team;
-    });
-}
-
-async function fetchCrestByTeamId(
-  federation: FederationProvider,
-  grupId: string,
-  logger: HttpLogger,
-): Promise<ReadonlyMap<string, string>> {
-  try {
-    const matches = await federation.getMatches(grupId);
-    const crestByTeamId = new Map<string, string>();
-    for (const match of matches) {
-      if (match.homeTeam.crest) {
-        crestByTeamId.set(match.homeTeam.id, match.homeTeam.crest);
-      }
-      if (match.awayTeam.crest) {
-        crestByTeamId.set(match.awayTeam.id, match.awayTeam.crest);
-      }
-    }
-    return crestByTeamId;
-  } catch (error) {
-    logger.error('failed to fetch matches for crest enrichment; returning teams without crests', {
-      grupId,
-      error: error instanceof Error ? error.message : String(error),
-    });
-    return new Map();
-  }
-}
-
-async function fetchWithdrawnTeamIds(
-  federation: FederationProvider,
-  grupId: string,
-  logger: HttpLogger,
-): Promise<ReadonlySet<string>> {
-  try {
-    return await federation.getWithdrawnTeamIds(grupId);
-  } catch (error) {
-    logger.error('failed to fetch withdrawn team ids; returning the full team list', {
-      grupId,
-      error: error instanceof Error ? error.message : String(error),
-    });
-    return new Set();
-  }
+  return discontinued();
 }
 
 function checkMethod(method: string | undefined): JsonHttpResponse | undefined {
@@ -179,51 +68,6 @@ function checkMethod(method: string | undefined): JsonHttpResponse | undefined {
   return undefined;
 }
 
-function jsonOk(data: unknown): JsonHttpResponse {
-  return {
-    status: 200,
-    headers: {
-      'Content-Type': 'application/json; charset=utf-8',
-      'Cache-Control': `public, max-age=${CATALOG_CACHE_MAX_AGE_SECONDS}, s-maxage=${CATALOG_CACHE_MAX_AGE_SECONDS}, stale-if-error=${STALE_IF_ERROR_SECONDS}`,
-    },
-    body: JSON.stringify(data),
-  };
-}
-
-function routeError(error: unknown): JsonHttpResponse {
-  if (error instanceof InvalidRouteError) {
-    return { status: 400, headers: { 'Content-Type': 'text/plain; charset=utf-8' }, body: error.message };
-  }
-  throw error;
-}
-
-function upstreamError(logger: HttpLogger, context: string, error: unknown): JsonHttpResponse {
-  logger.error(`failed to fetch ${context}`, { error: describeErrorChain(error) });
-  return {
-    status: 502,
-    headers: { 'Content-Type': 'text/plain; charset=utf-8', 'Cache-Control': 'no-store' },
-    body: 'Failed to fetch data from the federation. Please try again shortly.',
-  };
-}
-
-function describeErrorChain(error: unknown): string {
-  const messages: string[] = [];
-  let current: unknown = error;
-  const seen = new Set<unknown>();
-  while (current !== undefined && current !== null && !seen.has(current)) {
-    seen.add(current);
-    if (current instanceof Error) {
-      messages.push(current.message);
-      current = (current as { cause?: unknown }).cause;
-    } else {
-      messages.push(String(current));
-      break;
-    }
-  }
-  return messages.length > 0 ? messages.join(' <- caused by: ') : String(error);
-}
-
-function nonEmptyOrDefault(value: string | undefined, fallback: string): string {
-  const trimmed = value?.trim();
-  return trimmed !== undefined && trimmed !== '' ? trimmed : fallback;
+function discontinued(): JsonHttpResponse {
+  return { status: 410, headers: SERVICE_DISCONTINUED_HEADERS, body: SERVICE_DISCONTINUED_MESSAGE };
 }
