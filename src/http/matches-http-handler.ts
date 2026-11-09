@@ -6,6 +6,7 @@ import { consoleHttpLogger, type HttpLogger } from './http-logger.js';
 
 const ALLOWED_METHODS = ['GET', 'HEAD'];
 const MATCHES_CACHE_MAX_AGE_SECONDS = 30 * 60;
+const STALE_IF_ERROR_SECONDS = 3 * 24 * 60 * 60;
 
 export interface TeamMatchesHttpRequest {
   readonly method: string | undefined;
@@ -63,7 +64,7 @@ export async function handleTeamMatchesRequest(
 
   const sharedHeaders: Record<string, string> = {
     ETag: etag,
-    'Cache-Control': `public, max-age=${MATCHES_CACHE_MAX_AGE_SECONDS}, must-revalidate`,
+    'Cache-Control': `public, max-age=${MATCHES_CACHE_MAX_AGE_SECONDS}, s-maxage=${MATCHES_CACHE_MAX_AGE_SECONDS}, stale-if-error=${STALE_IF_ERROR_SECONDS}`,
   };
 
   if (request.ifNoneMatch !== undefined && request.ifNoneMatch === etag) {

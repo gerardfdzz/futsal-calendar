@@ -8,6 +8,7 @@ import { consoleHttpLogger, type HttpLogger } from './http-logger.js';
 
 const ALLOWED_METHODS = ['GET', 'HEAD'];
 const TEAM_PAGE_CACHE_MAX_AGE_SECONDS = 30 * 60;
+const STALE_IF_ERROR_SECONDS = 3 * 24 * 60 * 60;
 
 export interface TeamPageHttpRequest {
   readonly method: string | undefined;
@@ -84,7 +85,7 @@ export async function handleTeamPageRequest(
     status: 200,
     headers: {
       'Content-Type': 'text/html; charset=utf-8',
-      'Cache-Control': `public, max-age=${TEAM_PAGE_CACHE_MAX_AGE_SECONDS}`,
+      'Cache-Control': `public, max-age=${TEAM_PAGE_CACHE_MAX_AGE_SECONDS}, s-maxage=${TEAM_PAGE_CACHE_MAX_AGE_SECONDS}, stale-if-error=${STALE_IF_ERROR_SECONDS}`,
     },
     body: isHead ? '' : html,
   };

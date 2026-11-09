@@ -13,6 +13,7 @@ import { consoleHttpLogger, type HttpLogger } from './http-logger.js';
 const ALLOWED_METHODS = ['GET', 'HEAD'];
 
 const CATALOG_CACHE_MAX_AGE_SECONDS = 60 * 60;
+const STALE_IF_ERROR_SECONDS = 3 * 24 * 60 * 60;
 
 export interface JsonHttpRequest {
   readonly method: string | undefined;
@@ -183,7 +184,7 @@ function jsonOk(data: unknown): JsonHttpResponse {
     status: 200,
     headers: {
       'Content-Type': 'application/json; charset=utf-8',
-      'Cache-Control': `public, max-age=${CATALOG_CACHE_MAX_AGE_SECONDS}`,
+      'Cache-Control': `public, max-age=${CATALOG_CACHE_MAX_AGE_SECONDS}, s-maxage=${CATALOG_CACHE_MAX_AGE_SECONDS}, stale-if-error=${STALE_IF_ERROR_SECONDS}`,
     },
     body: JSON.stringify(data),
   };

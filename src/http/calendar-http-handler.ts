@@ -6,6 +6,7 @@ import { consoleHttpLogger, type HttpLogger } from './http-logger.js';
 const ALLOWED_METHODS = ['GET', 'HEAD'];
 
 const CACHE_MAX_AGE_SECONDS = 30 * 60;
+const STALE_IF_ERROR_SECONDS = 3 * 24 * 60 * 60;
 
 export interface CalendarHttpRequest {
   readonly method: string | undefined;
@@ -64,7 +65,7 @@ export async function handleCalendarRequest(
 
   const sharedHeaders: Record<string, string> = {
     ETag: result.etag,
-    'Cache-Control': `public, max-age=${CACHE_MAX_AGE_SECONDS}, must-revalidate`,
+    'Cache-Control': `public, max-age=${CACHE_MAX_AGE_SECONDS}, s-maxage=${CACHE_MAX_AGE_SECONDS}, stale-if-error=${STALE_IF_ERROR_SECONDS}`,
     'Last-Modified': new Date().toUTCString(),
   };
 
