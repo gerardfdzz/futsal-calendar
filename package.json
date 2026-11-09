@@ -13,9 +13,13 @@
     "test:watch": "node scripts/run-tests.mjs --watch",
     "smoke:fcf": "tsx scripts/smoke-fcf.ts",
     "smoke:ics": "tsx scripts/smoke-ics.ts",
-    "dev": "tsx scripts/dev-server.ts"
+    "dev": "tsx scripts/dev-server.ts",
+    "sync:personal:authorize": "tsx scripts/personal-sync/authorize.ts",
+    "sync:personal": "tsx scripts/personal-sync/sync.ts"
   },
-  "dependencies": {},
+  "dependencies": {
+    "google-auth-library": "^9.15.0"
+  },
   "devDependencies": {
     "@types/node": "^22.10.0",
     "tsx": "^4.19.0",

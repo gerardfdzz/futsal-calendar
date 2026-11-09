@@ -41,7 +41,7 @@ interface VEventConfig {
   readonly now: Date;
 }
 
-function buildSummaryText(match: Match): string {
+export function buildSummaryText(match: Match): string {
   if (match.score) {
     return `⚽ FINAL · ${match.homeTeam.name} ${match.score.home} - ${match.score.away} ${match.awayTeam.name}`;
   }

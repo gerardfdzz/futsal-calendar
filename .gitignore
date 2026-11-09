@@ -7,3 +7,6 @@ coverage/
 .env.local
 tmp-*.ics
 web/.angular/
+scripts/personal-sync/credentials.json
+scripts/personal-sync/token.json
+scripts/personal-sync/state.json
